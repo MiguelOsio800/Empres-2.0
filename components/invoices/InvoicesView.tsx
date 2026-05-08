@@ -46,7 +46,6 @@ const ITEMS_PER_PAGE = 7;
 
 const InvoicesView: React.FC<InvoicesViewProps> = ({ invoices, clients, categories, userPermissions, onUpdateStatuses, onDeleteInvoice, companyInfo, initialFilter, offices }) => {
     const { currentUser, hasGlobalAccess } = useAuth();
-    const { handleCreateCreditNote, handleCreateDebitNote } = useData();
     const { confirm } = useConfirm();
     const [isModalOpen, setIsModalOpen] = useState(false);
     
@@ -302,8 +301,6 @@ const InvoicesView: React.FC<InvoicesViewProps> = ({ invoices, clients, categori
                     clients={clients} 
                     categories={categories}
                     offices={offices}
-                    onCreateCreditNote={handleCreateCreditNote}
-                    onCreateDebitNote={handleCreateDebitNote}
                     permissions={userPermissions}
                 />
             )}

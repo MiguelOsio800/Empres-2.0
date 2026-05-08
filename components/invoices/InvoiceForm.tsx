@@ -302,77 +302,28 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSave, invoice = null, compa
         }
     };
 
-    const sendToFiscalPrinter = async (invoiceData: Invoice) => {
-        if (!invoiceData.id) {
-             addToast({ type: 'error', title: 'Error', message: 'ID de factura no válido para enviar.' });
-             return;
-        }
-
-        addToast({
-            type: 'info',
-            title: 'Enviando a Impresora Fiscal',
-            message: `Procesando factura ${invoiceData.invoiceNumber}...`
-        });
-
-        const currentFormState = buildInvoiceObject();
-        const invoiceObjectToSend = {
-            ...currentFormState,
-            id: invoiceData.id, 
-            invoiceNumber: invoiceData.invoiceNumber,
-            status: invoiceData.status,
-            paymentStatus: invoiceData.paymentStatus,
-            shippingStatus: invoiceData.shippingStatus
-        };
-
-        try {
-            const result = await apiFetch<{ hkaResponse?: { cufe?: string }, message: string }>(`/invoices/${invoiceData.id}/send-to-hka`, {
-                method: 'POST',
-                body: JSON.stringify(invoiceObjectToSend),
-            });
-            
-            addToast({
-                type: 'success',
-                title: 'Factura Fiscalizada',
-                message: result.message || `Factura enviada. CUFE: ${result.hkaResponse?.cufe}`
-            });
-
-        } catch (error: any) {
-             addToast({
-                type: 'error',
-                title: 'Error Fiscal',
-                message: error.message || `Fallo al comunicar con el servicio fiscal.`
-            });
-        }
-    };
-    
-    const handleSaveAndSend = async () => {
-        if (!validateForm()) {
-            addToast({ type: 'error', title: 'Error de Validación', message: 'Por favor, corrija los campos marcados en rojo.' });
-            return;
-        }
-        
-        const invoiceObject = buildInvoiceObject();
-        
-        let savedInvoice: Invoice | null = null;
-        if (invoice) { // Edit mode
-            savedInvoice = await (onSave as EditFormProps['onSave'])(invoiceObject as Invoice);
-        } else { // Create mode
-            savedInvoice = await (onSave as CreateFormProps['onSave'])(invoiceObject as Omit<Invoice, 'status' | 'shippingStatus'>);
-        }
-
-        if (savedInvoice) {
-            await sendToFiscalPrinter(savedInvoice);
-            window.location.hash = 'invoices';
-        }
-    };
-    
     const resetForm = () => {
         setGuide(getInitialGuideState());
         setErrors({});
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Enter') {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+                // Ignore Enter on search input wrappers if needed, but simple inputs are fine
+                e.preventDefault();
+                const formElements = Array.from(document.querySelectorAll('input:not([disabled]):not([type="hidden"]), select:not([disabled])')) as HTMLElement[];
+                const index = formElements.indexOf(target);
+                if (index > -1 && index < formElements.length - 1) {
+                    formElements[index + 1].focus();
+                }
+            }
+        }
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" onKeyDown={handleKeyDown}>
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -384,11 +335,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSave, invoice = null, compa
                 </div>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                     <Button variant="secondary" onClick={resetForm}><XCircleIcon className="w-4 h-4 mr-2" />Limpiar</Button>
-                    <Button variant="secondary" onClick={handleSave}><SaveIcon className="w-4 h-4 mr-2" />{invoice ? 'Actualizar' : 'Solo Guardar'}</Button>
-                    <Button onClick={handleSaveAndSend}>
-                        <SendIcon className="w-4 h-4 mr-2" />
-                        {invoice ? 'Actualizar y Enviar' : 'Guardar y Enviar'}
-                    </Button>
+                    <Button variant="primary" onClick={handleSave}><SaveIcon className="w-4 h-4 mr-2" />{invoice ? 'Actualizar' : 'Guardar'}</Button>
                 </div>
             </div>
 

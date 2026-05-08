@@ -79,7 +79,7 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
             setTotal(filtered.length);
         } catch (error) {
             console.error('Error processing asociados:', error);
-            addToast({ type: 'error', title: 'Error', message: 'No se pudieron cargar los asociados.' });
+            addToast({ type: 'error', title: 'Error', message: 'No se pudieron cargar los conductores.' });
         } finally {
             setIsLoading(false);
         }
@@ -126,14 +126,14 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
         setIsLoading(true);
         try {
             await onDeleteAsociado(asociadoToDelete);
-            addToast({ type: 'success', title: 'Eliminado', message: 'Asociado eliminado correctamente.' });
+            addToast({ type: 'success', title: 'Eliminado', message: 'Conductor eliminado correctamente.' });
             fetchAsociados();
         } catch (error: any) {
             console.error('Error deleting asociado:', error);
             addToast({ 
                 type: 'error', 
                 title: 'Error', 
-                message: error.message || 'No se pudo eliminar el asociado.' 
+                message: error.message || 'No se pudo eliminar el conductor.' 
             });
         } finally {
             setIsLoading(false);
@@ -163,16 +163,16 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
         <div className="space-y-4">
              <Button variant="secondary" onClick={() => window.location.hash = 'asociados'}>
                 <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                Volver al Módulo de Asociados
+                Volver al Módulo de Conductores
             </Button>
             <Card>
                 <CardHeader>
                     <div className="flex flex-wrap justify-between items-center gap-4">
-                        <CardTitle>Búsqueda de Asociados</CardTitle>
+                        <CardTitle>Búsqueda de Conductores</CardTitle>
                          <div className="flex items-center gap-2">
                             {permissions['asociados.create'] && (
                                  <Button onClick={handleCreateNew}>
-                                    <PlusIcon className="w-4 h-4 mr-2" /> Nuevo Asociado
+                                    <PlusIcon className="w-4 h-4 mr-2" /> Nuevo Conductor
                                 </Button>
                             )}
                         </div>
@@ -217,7 +217,7 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
                                         size="sm"
                                         className="!p-2 opacity-0 group-hover:opacity-100 transition-opacity"
                                         onClick={(e) => confirmDelete(asociado.id, e)}
-                                        title="Eliminar Asociado"
+                                        title="Eliminar Conductor"
                                         disabled={isLoading || !asociado.id}
                                     >
                                         <TrashIcon className="w-4 h-4" />
@@ -227,7 +227,7 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
                         </div>
                     )) : (
                         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                            <p>No se encontraron asociados.</p>
+                            <p>No se encontraron conductores.</p>
                             {searchTerm && <p className="text-sm">Intente con otro término de búsqueda.</p>}
                         </div>
                     )}
@@ -262,8 +262,8 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
             </Card>
             <ConfirmationModal
                 isOpen={isConfirmDeleteOpen}
-                title="Eliminar Asociado"
-                message="¿Estás seguro de que deseas eliminar este asociado? Esta acción no se puede deshacer."
+                title="Eliminar Conductor"
+                message="¿Estás seguro de que deseas eliminar este conductor? Esta acción no se puede deshacer."
                 onConfirm={executeDelete}
                 onCancel={() => {
                     setIsConfirmDeleteOpen(false);

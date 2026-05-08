@@ -273,12 +273,11 @@ const RemesaDocumentModal: React.FC<RemesaDocumentModalProps> = ({
                                             <th className="text-right py-1 text-black w-[10%]">Ipostel</th>
                                             <th className="text-right py-1 text-black w-[10%]">Manejo</th>
                                             <th className="text-right py-1 text-black w-[10%]">I.V.A.</th>
-                                            <th className="text-right py-1 text-black w-[13%]">Favor Coop.</th>
-                                            <th className="text-right py-1 text-black w-[13%]">Favor Soc.</th>
+                                            <th className="text-right py-1 text-black w-[26%]">Favor Empresa</th>
                                         </tr>
                                     </thead>
                                     <tbody className="text-black">
-                                        <tr>
+                                        <tr className="border-b border-gray-200">
                                             <td className="font-bold py-1 text-black">Pagado</td>
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.flete)}</td>
                                             <td className="text-right py-1 text-black">0.00</td>
@@ -287,8 +286,7 @@ const RemesaDocumentModal: React.FC<RemesaDocumentModalProps> = ({
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.ipostel)}</td>
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.manejo)}</td>
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.iva)}</td>
-                                            <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.favorCooperativa)}</td>
-                                            <td className="text-right py-1 font-bold text-black">{formatCurrency(financials.pagado.favorAsociado)}</td>
+                                            <td className="text-right py-1 text-black font-semibold">{formatCurrency(financials.pagado.favorCooperativa)}</td>
                                         </tr>
                                         <tr className="border-b border-black">
                                             <td className="font-bold py-1 text-black">Destino</td>
@@ -299,8 +297,7 @@ const RemesaDocumentModal: React.FC<RemesaDocumentModalProps> = ({
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.destino.ipostel)}</td>
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.destino.manejo)}</td>
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.destino.iva)}</td>
-                                            <td className="text-right py-1 text-black">{formatCurrency(financials.destino.favorCooperativa)}</td>
-                                            <td className="text-right py-1 text-black">{formatCurrency(financials.destino.favorAsociado)}</td>
+                                            <td className="text-right py-1 text-black font-semibold">{formatCurrency(financials.destino.favorCooperativa)}</td>
                                         </tr>
                                         <tr className="font-bold">
                                             <td className="py-1 text-black">Total Bs.</td>
@@ -311,8 +308,7 @@ const RemesaDocumentModal: React.FC<RemesaDocumentModalProps> = ({
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.ipostel + financials.destino.ipostel)}</td>
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.manejo + financials.destino.manejo)}</td>
                                             <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.iva + financials.destino.iva)}</td>
-                                            <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.favorCooperativa + financials.destino.favorCooperativa)}</td>
-                                            <td className="text-right py-1 text-black">{formatCurrency(financials.pagado.favorAsociado + financials.destino.favorAsociado)}</td>
+                                            <td className="text-right py-1 text-black font-semibold">{formatCurrency(financials.pagado.favorCooperativa + financials.destino.favorCooperativa)}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -321,10 +317,10 @@ const RemesaDocumentModal: React.FC<RemesaDocumentModalProps> = ({
                                 <div className="grid grid-cols-2 gap-8 mt-4 text-black text-[10px]">
                                     <div className="pr-4">
                                         <div className="font-bold text-black mb-1 uppercase">
-                                            Cargos Cooperativa (Destino)
+                                            Cargos Empresa (Destino)
                                         </div>
                                         <div className="flex justify-between py-1 text-black">
-                                            <span className="text-black">Favor Coop.</span>
+                                            <span className="text-black">Favor Empresa</span>
                                             <span className="text-black">
                                                 {formatCurrency(financials.destino.favorCooperativa)}
                                             </span>
@@ -363,32 +359,23 @@ const RemesaDocumentModal: React.FC<RemesaDocumentModalProps> = ({
                                     <div className="pl-4 border-l border-gray-300">
                                         <div className="flex justify-between py-1 font-bold text-black">
                                             <span className="text-black uppercase">
-                                                {financials.totalPagado > 0 ? 'FAVOR SOCIO (PAGADO)' : 'TOTAL DESTINO'}
-                                            </span>
-                                            <span className="text-black">
-                                                {formatCurrency(financials.totalPagado > 0 ? financials.favorSocioPagado : financials.totalDestino)}
+                                                Liquidación {companyInfo.companyName}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between py-1 border-b-2 border-black font-bold text-black">
-                                            <span className="text-black">Sub Total:</span>
-                                            <span className="text-black">
-                                                {formatCurrency(financials.cargosDestino)}
+                                        <div className="flex justify-between py-2 border-transparent font-extrabold text-[12px] mt-2 text-white bg-black px-2">
+                                            <span className="text-white uppercase">
+                                                TOTAL EMPRESA:
+                                            </span>
+                                            <span className="text-white">
+                                                {formatCurrency(financials.cooperativeAmount)}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between py-2 border-transparent font-bold text-[11px] mt-2 text-black bg-gray-50 p-1">
-                                            <span className="text-black">
-                                                {financials.conceptoSaldo}:
-                                            </span>
-                                            <span className="text-black">
-                                                {financials.saldoFinal > 0 ? '-' : ''}{formatCurrency(Math.abs(financials.saldoFinal))}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between py-1 text-[10px] text-black">
+                                        <div className="flex justify-between py-1 text-[10px] text-black mt-4">
                                             <span className="text-black">Tasa (BCV):</span>
                                             <span className="text-black">{currentRate} Bs/$</span>
                                         </div>
                                         <div className="flex justify-between py-1 text-[10px] text-black">
-                                            <span className="text-black">Saldo en ($):</span>
+                                            <span className="text-black">Equivalente en ($):</span>
                                             <span className="text-black">${saldoFinalUsd}</span>
                                         </div>
                                     </div>

@@ -7,7 +7,7 @@ import { PlusIcon, EyeIcon, TrashIcon, ClipboardDocumentListIcon, XIcon, PlayIco
 import Select from '../ui/Select';
 import AsociadoSearchInput from '../asociados/AsociadoSearchInput';
 import RemesaDocumentModal from './RemesaDocumentModal';
-import { calculateInvoiceChargeableWeight } from '../../utils/financials';
+import { calculateInvoiceChargeableWeight, calculateDetailedRemesaFinancials } from '../../utils/financials';
 import AssignInvoiceModal from '../flota/AssignInvoiceModal';
 import Input from '../ui/Input';
 import { useConfirm } from '../../contexts/ConfirmationContext';
@@ -23,7 +23,7 @@ interface RemesasViewProps {
     shippingTypes: ShippingType[];
     onAssignToVehicle: (invoiceIds: string[], vehicleId: string) => Promise<void>;
     onUnassignInvoice: (invoiceId: string) => Promise<void>;
-    onDispatchVehicle: (vehicleId: string, invoiceIds: string[], exchangeRate: number, asociadoId: string) => Promise<Remesa | null>;
+    onDispatchVehicle: (vehicleId: string, invoiceIds: string[], exchangeRate: number, asociadoId: string, cooperativeAmount: number) => Promise<Remesa | null>;
     onDeleteRemesa: (remesaId: string) => Promise<void>;
     permissions: Permissions;
     companyInfo: CompanyInfo;
@@ -103,8 +103,12 @@ const RemesasView: React.FC<RemesasViewProps> = (props) => {
 
         const invoiceIds = assignedInvoices.map(inv => inv.id);
         
+        // Calculate cooperativeAmount via financials
+        const currentAsociado = asociados.find(a => a.id === vehicle.asociadoId);
+        const financials = calculateDetailedRemesaFinancials(assignedInvoices, companyInfo, shippingTypes, currentAsociado);
+        
         const exchangeRate = companyInfo.bcvRate || 1;
-        const newRemesa = await onDispatchVehicle(vehicleId, invoiceIds, exchangeRate, vehicle.asociadoId);
+        const newRemesa = await onDispatchVehicle(vehicleId, invoiceIds, exchangeRate, vehicle.asociadoId, financials.cooperativeAmount);
         if (newRemesa) {
             setRemesaForManifest(newRemesa);
             setIsManifestModalOpen(true);
@@ -293,6 +297,7 @@ const RemesasView: React.FC<RemesasViewProps> = (props) => {
                     offices={offices}
                     companyInfo={companyInfo}
                     shippingTypes={shippingTypes}
+                    asociados={asociados}
                 />
             )}
             

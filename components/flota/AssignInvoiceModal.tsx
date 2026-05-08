@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Invoice, Vehicle, Office, CompanyInfo, ShippingType } from '../../types';
+import { Invoice, Vehicle, Office, CompanyInfo, ShippingType, Asociado } from '../../types';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { calculateInvoiceChargeableWeight, calculateDetailedRemesaFinancials } from '../../utils/financials';
@@ -16,9 +16,10 @@ interface AssignInvoiceModalProps {
     offices: Office[];
     companyInfo: CompanyInfo;
     shippingTypes: ShippingType[];
+    asociados: Asociado[];
 }
 
-const AssignInvoiceModal: React.FC<AssignInvoiceModalProps> = ({ isOpen, onClose, onAssign, vehicle, availableInvoices, allInvoices, offices, companyInfo, shippingTypes }) => {
+const AssignInvoiceModal: React.FC<AssignInvoiceModalProps> = ({ isOpen, onClose, onAssign, vehicle, availableInvoices, allInvoices, offices, companyInfo, shippingTypes, asociados }) => {
     const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -48,8 +49,9 @@ const AssignInvoiceModal: React.FC<AssignInvoiceModalProps> = ({ isOpen, onClose
     const financials = useMemo(() => {
         const invoicesToCalculate = [...currentInvoices, ...selectedInvoices];
         if (invoicesToCalculate.length === 0) return null;
-        return calculateDetailedRemesaFinancials(invoicesToCalculate, companyInfo, shippingTypes, undefined);
-    }, [currentInvoices, selectedInvoices, companyInfo, shippingTypes]);
+        const currentAsociado = asociados?.find(a => a.id === vehicle.asociadoId);
+        return calculateDetailedRemesaFinancials(invoicesToCalculate, companyInfo, shippingTypes, currentAsociado);
+    }, [currentInvoices, selectedInvoices, companyInfo, shippingTypes, asociados, vehicle.asociadoId]);
 
     const formatCurrency = (amount: number) => `Bs. ${amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -114,7 +116,7 @@ const AssignInvoiceModal: React.FC<AssignInvoiceModalProps> = ({ isOpen, onClose
                                     <div className="flex justify-between">
                                         <span className="text-gray-600 dark:text-gray-400">Pagado:</span>
                                         <span className="font-semibold text-green-700 dark:text-green-400">
-                                            {formatCurrency(financials.pagado.favorCooperativa + financials.pagado.seguro + financials.pagado.ipostel + financials.pagado.manejo + financials.pagado.iva + financials.pagado.favorAsociado)}
+                                            {formatCurrency(financials.totalPagado)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
@@ -126,28 +128,20 @@ const AssignInvoiceModal: React.FC<AssignInvoiceModalProps> = ({ isOpen, onClose
                                     <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1 mt-1 font-bold">
                                         <span className="text-gray-800 dark:text-gray-200">Total Remesa:</span>
                                         <span className="text-gray-800 dark:text-gray-200">
-                                            {formatCurrency((financials.pagado.favorCooperativa + financials.pagado.seguro + financials.pagado.ipostel + financials.pagado.manejo + financials.pagado.iva + financials.pagado.favorAsociado) + financials.totalDestino)}
+                                            {formatCurrency(financials.totalPagado + financials.totalDestino)}
                                         </span>
                                     </div>
                                 </div>
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-700 dark:text-gray-300 border-b pb-1 mb-2">Saldos Estimados</h4>
+                                <h4 className="font-bold text-gray-700 dark:text-gray-300 border-b pb-1 mb-2">Liquidación Empresa</h4>
                                 <div className="space-y-1">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">Favor Socio (Pagadas):</span>
-                                        <span className="font-semibold">{formatCurrency(financials.pagado.favorAsociado)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">Favor Coop (Destino):</span>
-                                        <span className="font-semibold">{formatCurrency(financials.destino.favorCooperativa + financials.destino.seguro + financials.destino.ipostel + financials.destino.manejo + financials.destino.iva)}</span>
-                                    </div>
                                     <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1 mt-1 font-bold bg-white dark:bg-gray-900 rounded px-1">
-                                        <span className="text-gray-800 dark:text-gray-200 uppercase text-[10px]">
+                                        <span className="text-gray-800 dark:text-gray-200 uppercase text-[12px] font-extrabold">
                                             {financials.conceptoSaldo}:
                                         </span>
-                                        <span className={`text-gray-800 dark:text-gray-200 ${financials.saldoFinal > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-primary-600 dark:text-primary-400'}`}>
-                                            {formatCurrency(Math.abs(financials.saldoFinal))}
+                                        <span className={`text-gray-800 dark:text-gray-200 font-extrabold text-blue-600 dark:text-blue-400`}>
+                                            {formatCurrency(financials.cooperativeAmount)}
                                         </span>
                                     </div>
                                 </div>

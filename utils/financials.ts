@@ -50,8 +50,8 @@ export const calculateFinancialDetails = (guide: ShippingGuide, companyInfo: Com
         ? (freight * 0.06) 
         : 0.000001;
     
-    // IVA is now 0 as per cooperative rules
-    const iva = 0;
+    // IVA is now mandatory at 16%
+    const iva = subtotal * 0.16;
 
     const preIgtfTotal = subtotal + ipostel + iva;
 
@@ -140,39 +140,32 @@ export const calculateDetailedRemesaFinancials = (
         modalidadSaldo: 'Iguales'
     };
 
-    const isNoAsociado = asociado?.nombre.toLowerCase().includes('no asociado') || asociado?.nombre.toLowerCase().includes('no asociados');
+    const isNoAsociado = asociado?.nombre.toLowerCase().includes('no asociado') || asociado?.nombre.toLowerCase().includes('no asociados') || asociado?.nombre.toLowerCase().includes('no afiliado');
 
     invoices.forEach(inv => {
         const fin = calculateFinancialDetails(inv.guide, companyInfo);
         
-        // Use historical values from invoice if available to prevent recalculation mismatches
+        const totalAmount = inv.totalAmount; 
+
+        // Lógica actualizada: 100% si es afiliado, 30% si no es afiliado
+        let coopPercentage = isNoAsociado ? 0.30 : 1.00; 
+        
+        const favorCoop = totalAmount * coopPercentage;
+        
         const handling = inv.Montomanejo !== undefined ? inv.Montomanejo : fin.handling;
         const ipostel = inv.ipostelFee !== undefined ? inv.ipostelFee : fin.ipostel;
         const insuranceCost = fin.insuranceCost;
         const iva = fin.iva;
-        const totalAmount = inv.totalAmount; 
-
-        // Identifica la comisión base de la cooperativa (favorCoop): 15% o 30% del totalAmount según el shippingType
-        let coopPercentage = 0.30; 
-        if (!isNoAsociado) {
-            const shippingType = shippingTypes.find(st => st.id === inv.guide.shippingTypeId);
-            const typeName = shippingType?.name.toLowerCase() || '';
-            if (typeName.includes('franquicia') || typeName.includes('expreso') || typeName.includes('mudanza')) {
-                coopPercentage = 0.15;
-            }
-        }
-        
-        // La comisión base de la cooperativa se extrae expresamente del totalAmount
-        const favorCoop = totalAmount * coopPercentage;
-        
-        // Cargos extras son la comisión + todos los demás conceptos (que también son retenidos)
-        const cargosExtrasFactura = favorCoop + insuranceCost + ipostel + handling + iva;
-        
-        // Lo que realmente le queda a favor al socio de esta factura, asumiendo que recaudó o recaudará el totalAmount
-        const socioShare = totalAmount - cargosExtrasFactura;
-        
-        // Flete es el restante del monto total menos seguro, ipostel, manejo e iva
         const flete = totalAmount - (insuranceCost + ipostel + handling + iva);
+
+        // Si la empresa cobra el 100% (afiliado), favorCoop ya incluye todo.
+        // Si cobra el 30%, entonces recauda ese 30% MÁS los gastos extra (seguro, ipostel, manejo, iva).
+        const cargosExtrasFactura = isNoAsociado 
+            ? favorCoop + insuranceCost + ipostel + handling + iva
+            : favorCoop;
+            
+        const socioShare = totalAmount - cargosExtrasFactura;
+
 
         if (inv.guide.paymentType === 'flete-pagado') {
             result.totalPagado += totalAmount;
@@ -202,40 +195,11 @@ export const calculateDetailedRemesaFinancials = (
         }
     });
 
-    // Paso 2: Implementación de las 4 Fórmulas Matemáticas
-    if (result.totalDestino === 0 && result.totalPagado > 0) {
-        // Fórmula 3 (Solo Pagado)
-        result.cooperativeAmount = result.cargosPagado;
-        result.saldoFinal = -result.favorSocioPagado; // Socio favor = negative
-        result.conceptoSaldo = 'Saldo a favor del socio';
-        result.modalidadSaldo = 'Pagado';
-    } else if (result.totalPagado === 0 && result.totalDestino > 0) {
-        // Fórmula 4 (Solo Destino)
-        result.cooperativeAmount = result.cargosDestino;
-        result.saldoFinal = result.cargosDestino; // Coop favor = positive
-        result.conceptoSaldo = 'Saldo a pagar a la cooperativa';
-        result.modalidadSaldo = 'Destino';
-    } else {
-        // Fórmulas 1 y 2 (Mixed)
-        const netCoopAmount = result.cargosDestino - result.favorSocioPagado;
-        result.cooperativeAmount = netCoopAmount;
-        
-        if (netCoopAmount > 0) {
-            // Fórmula 1: Saldo a favor de la cooperativa
-            result.saldoFinal = netCoopAmount;
-            result.conceptoSaldo = 'Saldo a pagar a la cooperativa';
-            result.modalidadSaldo = 'Destino';
-        } else if (netCoopAmount < 0) {
-            // Fórmula 2: Saldo a favor del socio
-            result.saldoFinal = netCoopAmount; // Keep negative
-            result.conceptoSaldo = 'Saldo a favor del socio';
-            result.modalidadSaldo = 'Pagado';
-        } else {
-            result.saldoFinal = 0;
-            result.conceptoSaldo = 'Saldo neutral';
-            result.modalidadSaldo = 'Iguales';
-        }
-    }
+    // Paso 2: Implementación de la nueva lógica
+    result.cooperativeAmount = result.totalPagado * (isNoAsociado ? 0.30 : 1.00) + result.totalDestino * (isNoAsociado ? 0.30 : 1.00);
+    result.saldoFinal = result.cooperativeAmount;
+    result.conceptoSaldo = 'Total Empresa';
+    result.modalidadSaldo = 'N/A';
 
     return result;
 };

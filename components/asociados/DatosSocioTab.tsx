@@ -44,7 +44,7 @@ const DatosSocioTab: React.FC<DatosSocioTabProps> = ({ asociado, onSave, isLoadi
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input label="Código" name="codigo" value={formData.codigo} onChange={handleChange} required placeholder="Ej. S-001" />
-                    <Input label="Nombre" name="nombre" value={formData.nombre} onChange={handleChange} required placeholder="Nombre completo del socio" />
+                    <Input label="Nombre" name="nombre" value={formData.nombre} onChange={handleChange} required placeholder="Nombre completo del conductor" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Input label="Cédula" name="cedula" value={formData.cedula} onChange={handleChange} required placeholder="V-12345678" />
@@ -57,7 +57,7 @@ const DatosSocioTab: React.FC<DatosSocioTabProps> = ({ asociado, onSave, isLoadi
                 </div>
                 <Input label="Dirección Habitación" name="direccion" value={formData.direccion} onChange={handleChange} required />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Select label="Status Socio" name="status" value={formData.status} onChange={handleChange}>
+                    <Select label="Status Conductor" name="status" value={formData.status} onChange={handleChange}>
                         <option value="Activo">Activo</option>
                         <option value="Inactivo">Inactivo</option>
                         <option value="Suspendido">Suspendido</option>
@@ -71,7 +71,7 @@ const DatosSocioTab: React.FC<DatosSocioTabProps> = ({ asociado, onSave, isLoadi
                         ) : (
                             <SaveIcon className="w-4 h-4 mr-2" />
                         )}
-                        {isLoading ? 'Guardando...' : (asociado.id ? 'Actualizar Datos' : 'Registrar Socio')}
+                        {isLoading ? 'Guardando...' : (asociado.id ? 'Actualizar Datos' : 'Registrar Conductor')}
                     </Button>
                 </div>
             </form>

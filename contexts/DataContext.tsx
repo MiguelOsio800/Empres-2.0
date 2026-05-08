@@ -40,7 +40,7 @@ type DataContextType = {
     handleDeleteVehicle: (vehicleId: string) => Promise<void>;
     handleAssignToVehicle: (invoiceIds: string[], vehicleId: string) => Promise<void>;
     handleUnassignInvoice: (invoiceId: string) => Promise<void>;
-    handleDispatchVehicle: (vehicleId: string, invoiceIds: string[], exchangeRate: number, asociadoId: string) => Promise<Remesa | null>;
+    handleDispatchVehicle: (vehicleId: string, invoiceIds: string[], exchangeRate: number, asociadoId: string, cooperativeAmount: number) => Promise<Remesa | null>;
     handleSaveExpense: (expense: Expense) => Promise<void>;
     handleDeleteExpense: (expenseId: string) => Promise<void>;
     handleSaveAsset: (asset: Asset) => Promise<void>;
@@ -312,14 +312,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 
                 if (currentUser) logAction(currentUser, 'DESASIGNAR_VEHICULO', `Desasignó factura ${id} del vehículo`, id);
             },
-            handleDispatchVehicle: async (vId, invoiceIds, exchangeRate, asociadoId) => {
+            handleDispatchVehicle: async (vId, invoiceIds, exchangeRate, asociadoId, cooperativeAmount) => {
                 const resp = await apiFetch<{newRemesa: Remesa, updatedVehicle: Vehicle, updatedInvoices: Invoice[]}>(`/remesas`, { 
                     method: 'POST',
                     body: JSON.stringify({ 
                         vehicleId: vId, 
                         invoiceIds: invoiceIds,
                         exchangeRate: exchangeRate, 
-                        asociadoId: asociadoId 
+                        asociadoId: asociadoId,
+                        cooperativeAmount: cooperativeAmount
                     })
                 });
                 

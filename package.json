@@ -13,6 +13,7 @@
     "@google/genai": "latest",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^5.0.7",
@@ -25,10 +26,12 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.2.4",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4.2.4",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { Invoice, CompanyInfo, Client, Category, Office, Permissions } from '../../types';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
-import { XIcon, PackageIcon, DownloadIcon, SaveIcon, ArrowLeftIcon, ArrowUturnLeftIcon, PlusCircleIcon, ExclamationTriangleIcon } from '../icons/Icons';
+import { XIcon, DownloadIcon, PackageIcon } from '../icons/Icons';
 import { calculateFinancialDetails } from '../../utils/financials';
-import { apiFetch } from '../../utils/api';
-import { useToast } from '../ui/ToastProvider';
+import PdfViewerModal from './PdfViewerModal';
 
 interface InvoiceDetailViewProps {
     isOpen: boolean;
@@ -17,8 +16,6 @@ interface InvoiceDetailViewProps {
     clients: Client[];
     categories: Category[];
     offices?: Office[];
-    onCreateCreditNote?: (id: string, reason: string) => Promise<void>;
-    onCreateDebitNote?: (id: string, reason: string) => Promise<void>;
     permissions?: Permissions;
 }
 
@@ -30,15 +27,10 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
     clients, 
     categories, 
     offices,
-    onCreateCreditNote,
-    onCreateDebitNote,
     permissions
 }) => {
     
-    const [noteMode, setNoteMode] = useState<'none' | 'credit' | 'debit'>('none');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDownloadingHka, setIsDownloadingHka] = useState(false);
-    const { addToast } = useToast();
+    const [showPreimpreso, setShowPreimpreso] = useState(false);
 
     const sender = clients.find(c => c.id === invoice.guide.sender.id) || invoice.guide.sender;
     const receiver = clients.find(c => c.id === invoice.guide.receiver.id) || invoice.guide.receiver;
@@ -47,11 +39,9 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
     
     const financials = useMemo(() => {
         const baseFinancials = calculateFinancialDetails(invoice.guide, companyInfo);
-        
         const handling = invoice.Montomanejo !== undefined ? Number(invoice.Montomanejo) : baseFinancials.handling;
         const ipostel = invoice.ipostelFee !== undefined ? Number(invoice.ipostelFee) : baseFinancials.ipostel;
         const total = invoice.totalAmount !== undefined ? Number(invoice.totalAmount) : baseFinancials.total;
-        
         const subtotal = (baseFinancials.freight - baseFinancials.discount) + baseFinancials.insuranceCost + handling;
         
         return {
@@ -59,6 +49,7 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
             handling,
             ipostel,
             subtotal,
+            iva: subtotal * 0.16,
             total
         };
     }, [invoice, companyInfo]);
@@ -67,90 +58,17 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
     const formatUsd = (amount: number) => `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatInvoiceNumber = (num: string) => num.startsWith('F-') ? num : `F-${num}`;
 
-    const startCreditNote = () => setNoteMode('credit');
-    const startDebitNote = () => setNoteMode('debit');
-    const cancelNote = () => setNoteMode('none');
-
-    const submitNote = async () => {
-        setIsSubmitting(true);
-        const defaultReason = noteMode === 'credit' ? "Anulación/Devolución solicitada por usuario" : "Nota de Débito solicitada por usuario";
-        try {
-            if (noteMode === 'credit' && onCreateCreditNote) {
-                await onCreateCreditNote(invoice.id, defaultReason);
-                onClose();
-            } else if (noteMode === 'debit' && onCreateDebitNote) {
-                await onCreateDebitNote(invoice.id, defaultReason);
-                onClose();
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleDownloadHka = async () => {
-        setIsDownloadingHka(true);
-        addToast({ 
-            type: 'info', 
-            title: 'Descarga HKA', 
-            message: 'Solicitando factura oficial a The Factory HKA...' 
-        });
-
-        try {
-            // Se hace la petición POST a la ruta de descarga HKA del backend: /api/invoices/:id/download-hka
-            const response = await apiFetch<{ success: boolean, base64?: string, pdfUrl?: string, message?: string }>(
-                `/invoices/${invoice.id}/download-hka`, 
-                { 
-                    method: 'POST',
-                    body: JSON.stringify({
-                        tipoArchivo: 'pdf',
-                        tipoDocumento: '01'
-                    })
-                }
-            );
-
-            if (response.base64) {
-                const link = document.createElement('a');
-                link.href = `data:application/pdf;base64,${response.base64}`;
-                link.download = `Factura_Fiscal_HKA_${invoice.invoiceNumber}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                addToast({ type: 'success', title: 'Éxito', message: 'Factura fiscal descargada correctamente.' });
-            } else if (response.pdfUrl) {
-                window.open(response.pdfUrl, '_blank');
-                addToast({ type: 'success', title: 'Éxito', message: 'Documento abierto en una nueva pestaña.' });
-            } else {
-                throw new Error(response.message || 'No se recibió el archivo del servidor.');
-            }
-        } catch (error: any) {
-            addToast({ 
-                type: 'error', 
-                title: 'Error de Descarga', 
-                message: error.message || 'No se pudo recuperar la factura de HKA.' 
-            });
-        } finally {
-            setIsDownloadingHka(false);
-        }
-    };
-
     const handleDownloadPdf = async () => {
         const input = document.getElementById('invoice-to-print-display-only');
         if (!input) return;
 
         try {
-            const canvas = await html2canvas(input, { 
-                scale: 2, 
-                useCORS: true, 
-                logging: false,
-                windowWidth: 1200, 
+            const imgData = await toPng(input, { 
+                pixelRatio: 2, 
                 width: 794,
-                x: 0,
-                y: 0
+                backgroundColor: '#ffffff'
             });
 
-            const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -164,78 +82,28 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
             pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfImgHeight);
             heightLeft -= pdfHeight;
 
-            // Tolerancia de 10px para evitar hojas vacías por desbordamiento mínimo
             while (heightLeft > 10) {
                 position = heightLeft - pdfImgHeight;
                 pdf.addPage();
-                // Fixed: replaced undefined 'imgHeight' with 'pdfImgHeight'
                 pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfImgHeight);
                 heightLeft -= pdfHeight;
             }
 
-            pdf.save(`factura-${formatInvoiceNumber(invoice.invoiceNumber)}.pdf`);
+            pdf.save(`proforma-${formatInvoiceNumber(invoice.invoiceNumber)}.pdf`);
         } catch (error) {
             console.error("Error generating PDF:", error);
         }
     };
 
-    if (noteMode !== 'none') {
-        const isCredit = noteMode === 'credit';
-        const title = isCredit ? 'Confirmar Nota de Crédito' : 'Confirmar Nota de Débito';
-        const message = isCredit 
-            ? '¿Quiere generar la Nota de Crédito (Anulación)?' 
-            : '¿Quiere generar la Nota de Débito?';
-
-        return (
-            <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
-                <div className="p-6 text-center space-y-6">
-                    <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${isCredit ? 'bg-red-100' : 'bg-blue-100'}`}>
-                        <ExclamationTriangleIcon className={`h-6 w-6 ${isCredit ? 'text-red-600' : 'text-blue-600'}`} />
-                    </div>
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">{message}</h3>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                        <p>Esta acción registrará una nota fiscal asociada a la factura <strong>{formatInvoiceNumber(invoice.invoiceNumber)}</strong>.</p>
-                    </div>
-                    <div className="flex justify-center gap-4 mt-4">
-                        <Button variant="secondary" onClick={cancelNote} disabled={isSubmitting} className="w-24">No</Button>
-                        <Button variant={isCredit ? "danger" : "primary"} onClick={submitNote} disabled={isSubmitting} className="w-24">{isSubmitting ? '...' : 'Sí'}</Button>
-                    </div>
-                </div>
-            </Modal>
-        );
-    }
-
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Detalle de Proforma ${formatInvoiceNumber(invoice.invoiceNumber)}`} size="4xl">
+        <>
+        <Modal isOpen={isOpen && !showPreimpreso} onClose={onClose} title={`Detalle de Proforma ${formatInvoiceNumber(invoice.invoiceNumber)}`} size="4xl">
             <div className="flex flex-wrap justify-end gap-3 mb-4 no-print border-b pb-4 dark:border-gray-700">
-                {permissions?.['invoices.void'] && invoice.status === 'Activa' && onCreateCreditNote && (
-                    <Button type="button" variant="danger" onClick={startCreditNote} title="Generar Nota de Crédito (Anular)">
-                        <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />Nota Crédito
-                    </Button>
-                )}
-                {permissions?.['invoices.create'] && invoice.status === 'Activa' && onCreateDebitNote && (
-                    <Button type="button" variant="primary" onClick={startDebitNote} title="Generar Nota de Débito (Ajuste)">
-                        <PlusCircleIcon className="w-4 h-4 mr-2" />Nota Débito
-                    </Button>
-                )}
-                
-                <div className="border-l mx-2 dark:border-gray-600 h-8 hidden sm:block"></div>
-                
-                {/* BOTÓN DESCARGA HKA - Con estilo emerald destacado */}
-                <Button 
-                    type="button" 
-                    variant="primary" 
-                    onClick={handleDownloadHka} 
-                    disabled={isDownloadingHka}
-                    className="!bg-emerald-600 hover:!bg-emerald-700 text-white shadow-sm"
-                    title="Descargar Documento Fiscal Oficial de HKA"
-                >
-                    <DownloadIcon className="w-4 h-4 mr-2" />
-                    {isDownloadingHka ? 'Descargando...' : 'Descarga HKA'}
+                <Button type="button" variant="primary" onClick={() => setShowPreimpreso(true)} title="Imprimir Formato Pre-Impreso">
+                    <DownloadIcon className="w-4 h-4 mr-2" />Imprimir Pre-Impreso
                 </Button>
-
                 <Button type="button" variant="secondary" onClick={handleDownloadPdf} title="Descargar Copia del Sistema">
-                    <DownloadIcon className="w-4 h-4 mr-2" />Descargar PDF
+                    <DownloadIcon className="w-4 h-4 mr-2" />Descargar Proforma
                 </Button>
                 
                 <Button type="button" variant="secondary" onClick={onClose}>
@@ -246,13 +114,14 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
             <div className="printable-area flex justify-center bg-gray-200 dark:bg-gray-700 py-6 overflow-auto rounded-lg">
                 <div 
                     id="invoice-to-print-display-only" 
-                    className="bg-white text-black shadow-xl"
                     style={{ 
                         width: '794px', 
+                        minWidth: '794px',
                         padding: '0', 
                         margin: '0 auto',
                         boxSizing: 'border-box',
-                        backgroundColor: '#ffffff' 
+                        backgroundColor: '#ffffff',
+                        color: '#000000'
                     }} 
                 >
                     {/* HOJA 1: FACTURA - Altura optimizada a 1120px para margen de seguridad */}
@@ -410,6 +279,18 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
                 </div>
             </div>
         </Modal>
+        {showPreimpreso && (
+            <PdfViewerModal 
+                isOpen={showPreimpreso} 
+                onClose={() => setShowPreimpreso(false)} 
+                invoice={invoice} 
+                companyInfo={companyInfo} 
+                clients={clients} 
+                categories={categories} 
+                offices={offices} 
+            />
+        )}
+        </>
     );
 };
 

@@ -85,14 +85,14 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
                 addToast({
                     type: 'success',
                     title: 'Actualización exitosa',
-                    message: 'Socio actualizado correctamente.'
+                    message: 'Conductor actualizado correctamente.'
                 });
                 onBack(); // Redirigir a la búsqueda tras actualizar
             } else {
                 addToast({
                     type: 'success',
                     title: 'Registro exitoso',
-                    message: 'Socio creado correctamente.'
+                    message: 'Conductor creado correctamente.'
                 });
                 onBack(); // Redirigir a la búsqueda
             }
@@ -105,13 +105,13 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
                 addToast({
                     type: 'error',
                     title: 'Dato Duplicado',
-                    message: 'El Código o la Cédula ya pertenecen a otro socio registrado.'
+                    message: 'El Código o la Cédula ya pertenecen a otro conductor registrado.'
                 });
             } else {
                 addToast({
                     type: 'error',
                     title: 'Error',
-                    message: error.message || 'No se pudo guardar el asociado. Verifique los datos.'
+                    message: error.message || 'No se pudo guardar el conductor. Verifique los datos.'
                 });
             }
         } finally {
@@ -123,14 +123,14 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
         setIsLoading(true);
         try {
             await onDeleteAsociado(currentAsociado.id);
-            addToast({ type: 'success', title: 'Eliminado', message: 'Asociado eliminado correctamente.' });
+            addToast({ type: 'success', title: 'Eliminado', message: 'Conductor eliminado correctamente.' });
             onBack();
         } catch (error: any) {
             console.error("Error al eliminar asociado:", error);
             addToast({ 
                 type: 'error', 
                 title: 'Error', 
-                message: error.message || 'No se pudo eliminar el asociado.' 
+                message: error.message || 'No se pudo eliminar el conductor.' 
             });
         } finally {
             setIsLoading(false);
@@ -149,7 +149,7 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
                         ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                         : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
-            title={disabled ? 'Debe registrar al socio antes de gestionar sus vehículos' : ''}
+            title={disabled ? 'Debe registrar al conductor antes de gestionar sus vehículos' : ''}
         >
             {label}
         </button>
@@ -173,7 +173,7 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
                     )}
                     <div>
                         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                            {currentAsociado.id ? `${currentAsociado.nombre}` : 'Nuevo Asociado'}
+                            {currentAsociado.id ? `${currentAsociado.nombre}` : 'Nuevo Conductor'}
                         </h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                             Código: {currentAsociado.codigo || 'N/A'}
@@ -184,7 +184,7 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
 
             <div className="border-b border-gray-200 dark:border-gray-700">
                 <nav className="-mb-px flex space-x-2" aria-label="Tabs">
-                    <TabButton tabId="datos" label="Datos del Socio" />
+                    <TabButton tabId="datos" label="Datos del Conductor" />
                     <TabButton tabId="vehiculos" label="Vehículos y Certificados" disabled={!currentAsociado.id} />
                 </nav>
             </div>
@@ -204,8 +204,8 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
 
             <ConfirmationModal
                 isOpen={isConfirmDeleteOpen}
-                title="Eliminar Asociado"
-                message="¿Estás seguro de que deseas eliminar este asociado? Esta acción no se puede deshacer."
+                title="Eliminar Conductor"
+                message="¿Estás seguro de que deseas eliminar este conductor? Esta acción no se puede deshacer."
                 onConfirm={handleDelete}
                 onCancel={() => setIsConfirmDeleteOpen(false)}
             />
