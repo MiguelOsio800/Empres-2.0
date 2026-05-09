@@ -1,5 +1,5 @@
-import React from 'react';
-import { jsPDF } from 'jspdf';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Invoice, CompanyInfo, Client, Category, Office } from '../../types';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
@@ -16,6 +16,46 @@ interface PreImpresoModalProps {
     offices?: Office[];
 }
 
+const fieldPositions = {
+    date: { top: 40, left: 160 },
+    invoiceNumber: { top: 45, left: 160 },
+    
+    senderTitle: { top: 50, left: 15 },
+    senderName: { top: 54, left: 15 },
+    senderId: { top: 58, left: 15 },
+    senderAddress: { top: 62, left: 15 },
+    senderPhone: { top: 66, left: 15 },
+
+    receiverTitle: { top: 50, left: 110 },
+    receiverName: { top: 54, left: 110 },
+    receiverId: { top: 58, left: 110 },
+    receiverAddress: { top: 62, left: 110 },
+    receiverPhone: { top: 66, left: 110 },
+    
+    origin: { top: 74, left: 15 },
+    destination: { top: 74, left: 80 },
+    
+    Condiciones: { top: 80, left: 15 },
+
+    merchandiseStart: { top: 90, left: 15 },
+    merchandiseDescOffset: 15,
+    merchandiseWeightOffset: 165, 
+    merchandiseLineHeight: 5,
+
+    totalsLabel: { top: 105, left: 135 },
+    totalsValue: { top: 105, left: 180 }, // changed value start position
+    totalsLineHeight: 5,
+};
+
+const getStyle = (pos?: { top: number, left: number }) => {
+    if (!pos) return {};
+    return {
+        position: 'absolute' as const,
+        top: `${pos.top}mm`,
+        left: `${pos.left}mm`,
+    };
+};
+
 const PreImpresoModal: React.FC<PreImpresoModalProps> = ({ 
     isOpen, 
     onClose, 
@@ -25,9 +65,17 @@ const PreImpresoModal: React.FC<PreImpresoModalProps> = ({
     categories, 
     offices 
 }) => {
+    const [isMounted, setIsMounted] = useState(false);
+    const [printError, setPrintError] = useState(false);
+    
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     const sender = clients.find(c => c.id === invoice.guide.sender.id) || invoice.guide.sender;
     const receiver = clients.find(c => c.id === invoice.guide.receiver.id) || invoice.guide.receiver;
     const destOffice = offices?.find(o => o.id === invoice.guide.destinationOfficeId);
+    const originOffice = offices?.find(o => o.id === invoice.guide.originOfficeId) || { name: 'Sede Principal' };
     
     const baseFinancials = calculateFinancialDetails(invoice.guide, companyInfo);
     const handling = invoice.Montomanejo !== undefined ? Number(invoice.Montomanejo) : baseFinancials.handling;
@@ -49,101 +97,36 @@ const PreImpresoModal: React.FC<PreImpresoModalProps> = ({
     const formatInvoiceNumber = (num: string) => num.startsWith('F-') ? num : `F-${num}`;
 
     const generarImpresionTalonario = () => {
-        // Inicializa jsPDF en formato Apaisado (Landscape), Milímetros, y Media Carta estricta
-        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [215.9, 139.7] });
-        
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-
-        // FECHA Y FACTURA
-        doc.text(invoice.date, 175, 10);
-        doc.text(formatInvoiceNumber(invoice.invoiceNumber), 175, 15);
-
-        // --- DATOS DEL REMITENTE ---
-        const remX = 15;
-        let remY = 20;
-        doc.text(sender.name, remX, remY);
-        doc.text(sender.idNumber, remX, remY += 5);
-        doc.text(sender.address.substring(0, 60), remX, remY += 5); 
-        doc.text(sender.phone, remX, remY += 5);
-
-        // --- DATOS DEL DESTINATARIO ---
-        const desX = 115;
-        let desY = 20;
-        doc.text(receiver.name, desX, desY);
-        doc.text(receiver.idNumber, desX, desY += 5);
-        doc.text(receiver.address.substring(0, 60), desX, desY += 5);
-        doc.text(destOffice?.name || invoice.guide.destinationOfficeId, desX, desY += 5);
-
-        // --- INFO DEL FLETE ---
-        const infoX = 15;
-        let infoY = 50;
-        doc.text(`Destino: ${destOffice?.name || invoice.guide.destinationOfficeId}`, infoX, infoY);
-        doc.text(`Destino Esp.: ${invoice.guide.specificDestination || 'N/A'}`, infoX + 70, infoY);
-        
-        infoY += 5;
-        doc.text(`Pago: ${invoice.guide.paymentType === 'flete-pagado' ? 'Flete Pagado' : 'Flete a Destino'}`, infoX, infoY);
-        doc.text(`Moneda: ${invoice.guide.paymentCurrency}`, infoX + 70, infoY);
-        doc.text(`Orden Rec.: ${invoice.guide.pickupOrder || 'N/A'}`, infoX + 130, infoY);
-
-        infoY += 5;
-        doc.text(`Transbordo: ${invoice.guide.isTransbordo ? 'Sí' : 'No'}`, infoX, infoY);
-        doc.text(`Seguro: ${invoice.guide.hasInsurance ? 'Sí' : 'No'}`, infoX + 70, infoY);
-        doc.text(`V. Decl: ${invoice.guide.hasInsurance ? formatCurrency(invoice.guide.declaredValue || 0) : 'N/A'}`, infoX + 130, infoY);
-
-        // --- INFO DEL PAQUETE (Mercancía) ---
-        const packX = 15;
-        let packY = 75;
-        invoice.guide.merchandise.forEach((item) => {
-            const categoryName = categories.find(c => c.id === item.categoryId)?.name || '';
-            doc.text(`${item.quantity}`, packX, packY);
-            doc.text(`${item.description} (${categoryName})`.substring(0, 60), packX + 15, packY);
-            doc.text(`${Number(item.weight).toFixed(2)} KG`, packX + 110, packY);
-            packY += 5;
-        });
-
-        // --- MONTOS ---
-        const numX = 200;
-        const valX = 140;
-        let mntY = 85;
-        
-        const writeAmount = (label: string, amount: string | number, y: number) => {
-            doc.text(label, valX, y);
-            doc.text(amount.toString(), numX, y, { align: 'right' });
+        // En un iframe sandboxed (como la vista previa), window.print() suele estar bloqueado.
+        if (window.self !== window.top) {
+            setPrintError(true);
         }
-
-        writeAmount('Monto Flete:', formatCurrency(financials.freight), mntY);
-        writeAmount('Manejo de Merc.:', formatCurrency(financials.handling), mntY += 5);
-        writeAmount('Monto de Seguro:', formatCurrency(financials.insuranceCost || 0), mntY += 5);
-        
-        mntY += 2; // Espacio
-        
-        writeAmount('Base Imponible:', formatCurrency(financials.subtotal), mntY += 5);
-        writeAmount('I.V.A. (16%):', formatCurrency(financials.iva), mntY += 5);
-        writeAmount('IPOSTEL:', formatCurrency(financials.ipostel), mntY += 5);
-        
-        if (financials.igtf > 0) {
-            writeAmount('I.G.T.F:', formatCurrency(financials.igtf), mntY += 5);
+        try {
+            window.print();
+        } catch (err) {
+            setPrintError(true);
         }
-        
-        mntY += 3; // Espacio final
-        
-        doc.setFont("helvetica", "bold");
-        writeAmount('TOTAL:', formatCurrency(financials.total), mntY += 5);
-
-        // Fuerza el auto-print y abre en nueva pestaña
-        doc.autoPrint();
-        window.open(doc.output('bloburl'), '_blank');
     };
+
+    const PrintFilaTotal = ({ label, value, index, isBold = false }: { label: string, value: string | number, index: number, isBold?: boolean }) => (
+        <>
+            <div style={{ ...getStyle({ top: fieldPositions.totalsLabel.top + (fieldPositions.totalsLineHeight * index), left: fieldPositions.totalsLabel.left }), fontWeight: isBold ? 'bold' : 'normal' }}>
+                {label}
+            </div>
+            <div style={{ ...getStyle({ top: fieldPositions.totalsValue.top + (fieldPositions.totalsLineHeight * index), left: fieldPositions.totalsValue.left }), textAlign: 'right', width: '30mm', fontWeight: isBold ? 'bold' : 'normal' }}>
+                {value}
+            </div>
+        </>
+    );
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Impresión de Factura ${formatInvoiceNumber(invoice.invoiceNumber)}`} size="md">
             <div className="flex flex-col items-center justify-center p-8 gap-6 text-center">
                 <div className="text-gray-600 dark:text-gray-300">
                     <p className="mb-2">Asegurese de colocar el <strong>Talonario Pre-Impreso (Media Carta)</strong> en la bandeja de su impresora.</p>
-                    <p className="text-sm mb-4">Al hacer clic en "Imprimir Talonario", se generará un documento ajustado milimétricamente.</p>
+                    <p className="text-sm mb-4">Al hacer clic en "Imprimir Talonario", se generará un documento ajustado milimétricamente usando una plantilla HTML oculta.</p>
                     <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 p-3 rounded text-xs border border-yellow-300 dark:border-yellow-700">
-                        <strong>IMPORTANTE:</strong> En la ventana de impresión (Ctrl+P / Cmd+P), verifique que la opción "Diseño" (o "Orientación") esté ajustada a <strong>"Horizontal" (Landscape)</strong> para que coincida con el papel.
+                        <strong>IMPORTANTE:</strong> En la ventana de impresión, verifique que el tamaño de papel sea "Media Carta" (Half Letter) de 215.9mm x 139.7mm, y la orientación sea <strong>"Horizontal" (Landscape)</strong>. Cancele encabezados y pies de página.
                     </div>
                 </div>
 
@@ -151,11 +134,121 @@ const PreImpresoModal: React.FC<PreImpresoModalProps> = ({
                     <PrinterIcon className="w-6 h-6 mr-3" />
                     <span>Imprimir Talonario</span>
                 </Button>
+
+                {printError && (
+                    <div className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-3 rounded text-sm w-full max-w-md mt-2 border border-red-300 dark:border-red-700 font-medium">
+                        <p>La impresión está bloqueada en la vista previa de AI Studio por razones de seguridad del navegador.</p>
+                        <p className="mt-2">Para poder imprimir, <strong>abra la aplicación en una nueva pestaña</strong> usando el icono "Abrir app..." (↗️) en la esquina superior derecha del editor.</p>
+                    </div>
+                )}
                 
                 <Button type="button" variant="secondary" onClick={onClose} className="mt-2">
                     <XIcon className="w-4 h-4 mr-2" />Cerrar
                 </Button>
             </div>
+
+            {isOpen && isMounted && createPortal(
+                <div id="print-container">
+                    <style type="text/css" media="print">
+                        {`
+                            @page {
+                                size: 215.9mm 139.7mm;
+                                margin: 0;
+                            }
+                            body {
+                                margin: 0;
+                                padding: 0;
+                                background: white;
+                            }
+                            body > :not(#print-container) {
+                                display: none !important;
+                            }
+                            #print-container {
+                                display: block !important;
+                                position: absolute;
+                                left: 0;
+                                top: 0;
+                                width: 215.9mm;
+                                height: 139.7mm;
+                                font-family: monospace, sans-serif;
+                                font-size: 11pt;
+                                background-color: transparent;
+                                color: black;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            #print-container > div {
+                                position: absolute;
+                                display: block;
+                            }
+                        `}
+                    </style>
+
+                    <div style={getStyle(fieldPositions.date)}>{invoice.date}</div>
+                    <div style={getStyle(fieldPositions.invoiceNumber)}>{formatInvoiceNumber(invoice.invoiceNumber)}</div>
+
+                    <div style={{...getStyle(fieldPositions.senderTitle), fontWeight: 'bold'}}>REMITENTE</div>
+                    <div style={getStyle(fieldPositions.senderName)}>{sender.name.substring(0, 45)}</div>
+                    <div style={getStyle(fieldPositions.senderId)}>{sender.idNumber}</div>
+                    <div style={getStyle(fieldPositions.senderAddress)}>{sender.address.substring(0, 45)}</div>
+                    <div style={getStyle(fieldPositions.senderPhone)}>{sender.phone}</div>
+
+                    <div style={{...getStyle(fieldPositions.receiverTitle), fontWeight: 'bold'}}>DESTINATARIO</div>
+                    <div style={getStyle(fieldPositions.receiverName)}>{receiver.name.substring(0, 45)}</div>
+                    <div style={getStyle(fieldPositions.receiverId)}>{receiver.idNumber}</div>
+                    <div style={getStyle(fieldPositions.receiverAddress)}>{receiver.address.substring(0, 45)}</div>
+                    <div style={getStyle(fieldPositions.receiverPhone)}>{receiver.phone}</div>
+
+                    <div style={getStyle(fieldPositions.origin)}>Origen: {originOffice.name}</div>
+                    <div style={getStyle(fieldPositions.destination)}>Destino: {destOffice?.name || invoice.guide.destinationOfficeId}</div>
+                    
+                    <div style={getStyle(fieldPositions.Condiciones)}>
+                        Condiciones: {invoice.guide.paymentType === 'flete-pagado' ? 'Flete Pagado' : 'Flete a Destino'} / Seguro: {invoice.guide.hasInsurance ? 'Sí' : 'No'}
+                    </div>
+
+                    {invoice.guide.merchandise.map((item, index) => {
+                        const topPos = fieldPositions.merchandiseStart.top + (index * fieldPositions.merchandiseLineHeight);
+                        const categoryName = categories.find(c => c.id === item.categoryId)?.name || '';
+                        
+                        return (
+                            <React.Fragment key={index}>
+                                <div style={getStyle({ top: topPos, left: fieldPositions.merchandiseStart.left })}>
+                                    {item.quantity}
+                                </div>
+                                <div style={getStyle({ top: topPos, left: fieldPositions.merchandiseStart.left + fieldPositions.merchandiseDescOffset })}>
+                                    {item.description} ({categoryName})
+                                </div>
+                                <div style={{
+                                    ...getStyle({ top: topPos, left: fieldPositions.merchandiseStart.left + fieldPositions.merchandiseWeightOffset }),
+                                    textAlign: 'right',
+                                    width: '30mm'
+                                }}>
+                                    {Number(item.weight).toFixed(2)} KG
+                                </div>
+                            </React.Fragment>
+                        );
+                    })}
+
+                    <PrintFilaTotal label="Monto Flete:" value={formatCurrency(financials.freight)} index={0} />
+                    <PrintFilaTotal label="Manejo de Merc.:" value={formatCurrency(financials.handling)} index={1} />
+                    <PrintFilaTotal label="Seguro:" value={formatCurrency(financials.insuranceCost || 0)} index={2} />
+                    <PrintFilaTotal label="Base Imponible:" value={formatCurrency(financials.subtotal)} index={3} />
+                    <PrintFilaTotal label="I.V.A. (16%):" value={formatCurrency(financials.iva)} index={4} />
+                    <PrintFilaTotal label="IPOSTEL:" value={formatCurrency(financials.ipostel)} index={5} />
+                    
+                    {financials.igtf > 0 && (
+                        <PrintFilaTotal label="I.G.T.F:" value={formatCurrency(financials.igtf)} index={6} />
+                    )}
+
+                    <PrintFilaTotal 
+                        label="TOTAL:" 
+                        value={formatCurrency(financials.total)} 
+                        index={financials.igtf > 0 ? 7 : 6} 
+                        isBold={true} 
+                    />
+                </div>, 
+                document.body
+            )}
         </Modal>
     );
 };
