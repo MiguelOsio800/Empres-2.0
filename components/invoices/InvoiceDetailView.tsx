@@ -6,7 +6,7 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { XIcon, DownloadIcon, PackageIcon } from '../icons/Icons';
 import { calculateFinancialDetails } from '../../utils/financials';
-import PdfViewerModal from './PdfViewerModal';
+import PreImpresoModal from './PreImpresoModal';
 
 interface InvoiceDetailViewProps {
     isOpen: boolean;
@@ -280,7 +280,7 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
             </div>
         </Modal>
         {showPreimpreso && (
-            <PdfViewerModal 
+            <PreImpresoModal 
                 isOpen={showPreimpreso} 
                 onClose={() => setShowPreimpreso(false)} 
                 invoice={invoice} 
