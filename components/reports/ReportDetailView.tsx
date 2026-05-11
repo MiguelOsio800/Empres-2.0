@@ -479,10 +479,18 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                 totalsRow = { [headers[0]]: "TOTALES", [headers[1]]: enviosTotals.tf, [headers[2]]: enviosTotals.env, [headers[3]]: enviosTotals.tkg };
                 break;
             case 'gastos_oficina':
-                headers = ["Oficina", "Monto Total Gastado", "N° Gastos"];
-                dataToExport = (sourceData as any[]).map(d => ({ [headers[0]]: d.name, [headers[1]]: d.total, [headers[2]]: d.count }));
-                const gastosTotals = (sourceData as any[]).reduce((acc, d) => ({ t: acc.t + d.total, c: acc.c + d.count }), {t: 0, c: 0});
-                totalsRow = { [headers[0]]: "TOTALES", [headers[1]]: gastosTotals.t, [headers[2]]: gastosTotals.c };
+                headers = ["Oficina", "Fecha", "Descripción", "Categoría", "Monto"];
+                dataToExport = (sourceData as any[]).flatMap(d => 
+                    d.expenses.map((exp: any) => ({
+                        [headers[0]]: d.name,
+                        [headers[1]]: exp.date,
+                        [headers[2]]: exp.description,
+                        [headers[3]]: exp.category,
+                        [headers[4]]: exp.amount
+                    }))
+                );
+                const gastosTotals = (sourceData as any[]).reduce((acc, d) => ({ t: acc.t + d.total }), {t: 0});
+                totalsRow = { [headers[0]]: "TOTALES GENERAL", [headers[1]]: "", [headers[2]]: "", [headers[3]]: "", [headers[4]]: gastosTotals.t };
                 break;
              case 'reporte_kilogramos':
                 headers = ["Fecha", "N° Factura", "Cliente", "Total Kilogramos"];
