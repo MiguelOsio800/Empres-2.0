@@ -17,33 +17,33 @@ interface PreImpresoModalProps {
 }
 
 const fieldPositions = {
-    date: { top: 40, left: 160 },
-    invoiceNumber: { top: 45, left: 160 },
+    date: { top: 37, left: 163 },
+    invoiceNumber: { top: 42, left: 163 },
     
-    senderTitle: { top: 50, left: 15 },
-    senderName: { top: 54, left: 15 },
-    senderId: { top: 58, left: 15 },
-    senderAddress: { top: 62, left: 15 },
-    senderPhone: { top: 66, left: 15 },
+    senderTitle: { top: 52, left: 18 },
+    senderName: { top: 56, left: 18 },
+    senderId: { top: 60, left: 18 },
+    senderAddress: { top: 64, left: 18 },
+    senderPhone: { top: 68, left: 18 },
 
-    receiverTitle: { top: 50, left: 110 },
-    receiverName: { top: 54, left: 110 },
-    receiverId: { top: 58, left: 110 },
-    receiverAddress: { top: 62, left: 110 },
-    receiverPhone: { top: 66, left: 110 },
+    receiverTitle: { top: 52, left: 113 },
+    receiverName: { top: 56, left: 113 },
+    receiverId: { top: 60, left: 113 },
+    receiverAddress: { top: 64, left: 113 },
+    receiverPhone: { top: 68, left: 113 },
     
-    origin: { top: 74, left: 15 },
-    destination: { top: 74, left: 80 },
+    origin: { top: 76, left: 18 },
+    destination: { top: 76, left: 83 },
     
-    Condiciones: { top: 80, left: 15 },
+    Condiciones: { top: 82, left: 18 },
 
-    merchandiseStart: { top: 90, left: 15 },
+    merchandiseStart: { top: 88, left: 18 },
     merchandiseDescOffset: 15,
-    merchandiseWeightOffset: 165, 
+    merchandiseWeightOffset: 145, 
     merchandiseLineHeight: 5,
 
-    totalsLabel: { top: 105, left: 135 },
-    totalsValue: { top: 105, left: 180 }, // changed value start position
+    totalsLabel: { top: 97, left: 108 },
+    totalsValue: { top: 97, left: 148 }, 
     totalsLineHeight: 5,
 };
 
@@ -126,7 +126,7 @@ const PreImpresoModal: React.FC<PreImpresoModalProps> = ({
                     <p className="mb-2">Asegurese de colocar el <strong>Talonario Pre-Impreso (Media Carta)</strong> en la bandeja de su impresora.</p>
                     <p className="text-sm mb-4">Al hacer clic en "Imprimir Talonario", se generará un documento ajustado milimétricamente usando una plantilla HTML oculta.</p>
                     <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 p-3 rounded text-xs border border-yellow-300 dark:border-yellow-700">
-                        <strong>IMPORTANTE:</strong> En la ventana de impresión, verifique que el tamaño de papel sea "Media Carta" (Half Letter) de 215.9mm x 139.7mm, y la orientación sea <strong>"Horizontal" (Landscape)</strong>. Cancele encabezados y pies de página.
+                        <strong>IMPORTANTE:</strong> En la ventana de impresión, verifique que el tamaño de papel sea el correcto y la orientación sea <strong>"Horizontal" (Landscape)</strong>. Asegurese también de que los márgenes estén en "Ninguno" o "Predeterminado" y cancele encabezados/pies.
                     </div>
                 </div>
 
@@ -152,7 +152,7 @@ const PreImpresoModal: React.FC<PreImpresoModalProps> = ({
                     <style type="text/css" media="print">
                         {`
                             @page {
-                                size: 215.9mm 139.7mm;
+                                size: 212mm 152mm;
                                 margin: 0;
                             }
                             body {
@@ -168,14 +168,16 @@ const PreImpresoModal: React.FC<PreImpresoModalProps> = ({
                                 position: absolute;
                                 left: 0;
                                 top: 0;
-                                width: 215.9mm;
-                                height: 139.7mm;
+                                width: 212mm;
+                                height: 152mm;
+                                overflow: hidden; /* Evita que crezca a una segunda página */
                                 font-family: monospace, sans-serif;
-                                font-size: 11pt;
+                                font-size: 8pt; /* Texto aún más pequeño */
                                 background-color: transparent;
                                 color: black;
                                 margin: 0;
                                 padding: 0;
+                                box-sizing: border-box;
                             }
                             #print-container > div {
                                 position: absolute;

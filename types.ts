@@ -1,5 +1,5 @@
 
-export type Page = 'dashboard' | 'shipping-guide' | 'invoices' | 'asociados' | 'reports' | 'configuracion' | 'categories' | 'edit-invoice' | 'report-detail' | 'clientes' | 'proveedores' | 'offices' | 'shipping-types' | 'payment-methods' | 'libro-contable' | 'inventario' | 'auditoria' | 'inventario-bienes' | 'inventario-envios' | 'bienes-categorias' | 'asociados-gestion' | 'asociados-estadisticas' | 'asociados-reportes' | 'asociados-pagos' | 'remesas' | 'flota' | 'flota-vehiculos' | 'cobranzas';
+export type Page = 'dashboard' | 'shipping-guide' | 'invoices' | 'asociados' | 'reports' | 'configuracion' | 'categories' | 'edit-invoice' | 'report-detail' | 'clientes' | 'proveedores' | 'gastos' | 'offices' | 'shipping-types' | 'payment-methods' | 'libro-contable' | 'inventario' | 'auditoria' | 'inventario-bienes' | 'inventario-envios' | 'bienes-categorias' | 'asociados-gestion' | 'asociados-estadisticas' | 'asociados-reportes' | 'asociados-pagos' | 'remesas' | 'flota' | 'flota-vehiculos' | 'cobranzas';
 
 export type Permissions = Record<string, boolean>;
 

@@ -22,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
     { id: 'asociados', label: 'Conductores', icon: UsersIcon, permissionKey: 'asociados.view' },
     { id: 'clientes', label: 'Clientes', icon: UsersIcon, permissionKey: 'clientes.view' },
     { id: 'proveedores', label: 'Proveedores', icon: BriefcaseIcon, permissionKey: 'proveedores.view' },
+    { id: 'gastos', label: 'Gastos', icon: CreditCardIcon, permissionKey: 'libro-contable.create' },
     { id: 'libro-contable', label: 'Libro Contable', icon: BookOpenIcon, permissionKey: 'libro-contable.view' },
     { id: 'inventario', label: 'Inventario', icon: ArchiveBoxIcon, permissionKey: 'inventario.view' },
     { id: 'reports', label: 'Reportes', icon: BarChartIcon, permissionKey: 'reports.view' },

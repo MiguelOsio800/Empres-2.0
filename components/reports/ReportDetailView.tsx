@@ -845,26 +845,25 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                     const totalGastosOficina = dateFilteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
                     const totalFacturas = (sourceData as Invoice[]).reduce((sum, inv) => sum + inv.totalAmount, 0);
                     const totalEmpresa = totalFacturas;
+                    const refDolaresEmpresa = companyInfo.bcvRate > 0 ? totalEmpresa / companyInfo.bcvRate : 0;
 
                     // @ts-ignore
                     const finalY = pdf.lastAutoTable?.finalY || currentY + 100;
                     
                     const summaryData: any[] = [
-                        [{ content: "PARAMETROS", styles: { fontStyle: 'bold', lineWidth: { bottom: 0.1 } } }, { content: "PRODUCCIÓN", styles: { fontStyle: 'bold', lineWidth: { bottom: 0.1 } } }, { content: "EMPRESA", styles: { fontStyle: 'bold', lineWidth: { bottom: 0.1 } } }],
-                        ["FLETE PAGADO", `Bs. ${fletePagado.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, `Bs. ${empresaPagado.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
-                        ["FLETE DESTINO", `Bs. ${fleteDestino.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, `Bs. ${empresaDestino.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
+                        [{ content: "PARAMETROS", styles: { fontStyle: 'bold', lineWidth: { bottom: 0.1 } } }, { content: "PRODUCCIÓN", styles: { fontStyle: 'bold', lineWidth: { bottom: 0.1 } } }, { content: "", styles: { fontStyle: 'bold', lineWidth: { bottom: 0.1 } } }],
+                        ["FLETE PAGADO", `Bs. ${fletePagado.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""],
+                        ["FLETE DESTINO", `Bs. ${fleteDestino.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""],
                         ["CREDITO", `Bs. ${credito.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""],
                         ["IPOSTEL", `Bs. ${ipostelTotal.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""],
                         ["SEGURO", `Bs. ${seguroTotal.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""],
                         ["MANEJO", `Bs. ${manejoTotal.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""],
                         ["MUDANZA", `Bs. ${mudanza.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""],
                         [{ content: "", colSpan: 3, styles: { minCellHeight: 5 } }],
-                        ["TOTAL GENERAL:", `Bs. ${totalGeneral.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""],
-                        ["REF $:", refDolares.toFixed(2), ""],
-                        [{ content: "", colSpan: 3, styles: { minCellHeight: 5 } }],
                         ["TOTAL GASTOS OFICINA:", `Bs. ${totalGastosOficina.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, { content: `${currentUser?.name || 'NOMBRE APELLIDO DEL USUARIO'}\n${roles.find(r => r.id === currentUser?.roleId)?.name || 'OFICINISTA O ROL'}`, styles: { halign: 'center', valign: 'bottom', fontSize: 7, cellPadding: { top: 15 } } }],
                         [{ content: "", colSpan: 3, styles: { minCellHeight: 5 } }],
-                        ["TOTAL EMPRESA:", `Bs. ${totalEmpresa.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""]
+                        ["TOTAL EMPRESA:", `Bs. ${totalEmpresa.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, ""],
+                        ["REF $:", refDolaresEmpresa.toFixed(2), ""]
                     ];
 
                     autoTable(pdf, {
@@ -879,7 +878,7 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                             2: { cellWidth: 60 }
                         },
                         didDrawCell: function(data) {
-                            if (data.row.index === 12 && data.column.index === 2) {
+                            if (data.row.index === 9 && data.column.index === 2) {
                                 // Draw signature line
                                 pdf.setDrawColor(0, 0, 0);
                                 pdf.setLineWidth(0.5);
@@ -890,7 +889,7 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                                 pdf.setLineWidth(0.5);
                                 pdf.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
                             }
-                            if (data.row.index === 9 || data.row.index === 14) {
+                            if (data.row.index === 8 || data.row.index === 11) {
                                 pdf.setDrawColor(0, 0, 0);
                                 pdf.setLineWidth(0.5);
                                 pdf.line(data.cell.x, data.cell.y, data.cell.x + data.cell.width, data.cell.y);
@@ -1373,24 +1372,25 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                     const refDolares = companyInfo.bcvRate > 0 ? totalGeneral / companyInfo.bcvRate : 0;
                     const totalGastosOficina = dateFilteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
                     const totalEmpresa = generalTotalsUI.total;
+                    const refDolaresEmpresa = companyInfo.bcvRate > 0 ? totalEmpresa / companyInfo.bcvRate : 0;
 
                     summary = (
                         <div className="mt-8 pt-4 w-full max-w-3xl text-black">
                             <div className="grid grid-cols-3 gap-4 mb-2 text-sm font-bold border-b-2 border-black pb-2">
                                 <div>PARAMETROS</div>
                                 <div>PRODUCCIÓN</div>
-                                <div>EMPRESA</div>
+                                <div></div>
                             </div>
                             <div className="space-y-2 text-sm">
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>FLETE PAGADO</div>
                                     <div>{formatCurrency(fletePagado)}</div>
-                                    <div>{formatCurrency(empresaPagado)}</div>
+                                    <div></div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>FLETE DESTINO</div>
                                     <div>{formatCurrency(fleteDestino)}</div>
-                                    <div>{formatCurrency(empresaDestino)}</div>
+                                    <div></div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>CREDITO</div>
@@ -1420,16 +1420,6 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                             </div>
                             
                             <div className="mt-4 pt-4 border-t-2 border-black text-sm">
-                                <div className="grid grid-cols-3 gap-4 mb-2">
-                                    <div>TOTAL GENERAL:</div>
-                                    <div>{formatCurrency(totalGeneral)}</div>
-                                    <div></div>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4 mb-6">
-                                    <div>REF $:</div>
-                                    <div>{refDolares.toFixed(2)}</div>
-                                    <div></div>
-                                </div>
                                 <div className="grid grid-cols-3 gap-4 items-end">
                                     <div>TOTAL GASTOS<br/>OFICINA:</div>
                                     <div>{formatCurrency(totalGastosOficina)}</div>
@@ -1447,6 +1437,11 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>TOTAL EMPRESA:</div>
                                     <div>{formatCurrency(totalEmpresa)}</div>
+                                    <div></div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 mt-2">
+                                    <div>REF $:</div>
+                                    <div>{refDolaresEmpresa.toFixed(2)}</div>
                                     <div></div>
                                 </div>
                             </div>

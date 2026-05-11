@@ -41,15 +41,18 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
         const baseFinancials = calculateFinancialDetails(invoice.guide, companyInfo);
         const handling = invoice.Montomanejo !== undefined ? Number(invoice.Montomanejo) : baseFinancials.handling;
         const ipostel = invoice.ipostelFee !== undefined ? Number(invoice.ipostelFee) : baseFinancials.ipostel;
-        const total = invoice.totalAmount !== undefined ? Number(invoice.totalAmount) : baseFinancials.total;
         const subtotal = (baseFinancials.freight - baseFinancials.discount) + baseFinancials.insuranceCost + handling;
+        const iva = subtotal * 0.16;
+        const igtf = invoice.guide.paymentCurrency === 'USD' ? (subtotal + ipostel + iva) * 0.03 : 0;
+        const total = subtotal + ipostel + iva + igtf;
         
         return {
             ...baseFinancials,
             handling,
             ipostel,
             subtotal,
-            iva: subtotal * 0.16,
+            iva,
+            igtf,
             total
         };
     }, [invoice, companyInfo]);

@@ -4,11 +4,10 @@ import { Transaction } from './LibroContableView';
 import { Permissions, Expense, ExpenseCategory, Office, User, PaymentMethod, CompanyInfo, Supplier, PaymentStatus, ShippingStatus } from '../../types';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
-import { PlusIcon, TrashIcon, EditIcon } from '../icons/Icons';
-import ExpenseFormModal from './ExpenseFormModal';
+import { FileSpreadsheetIcon } from '../icons/Icons';
 import usePagination from '../../hooks/usePagination';
 import PaginationControls from '../ui/PaginationControls';
-import { useConfirm } from '../../contexts/ConfirmationContext';
+import { exportToExcel as utilsExportToExcel } from '../../utils/exportUtils';
 
 const formatCurrency = (amount: number) => `Bs. ${amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -53,9 +52,6 @@ const TransactionsModal: React.FC<TransactionsModalProps> = ({
     expenseCategories, offices, paymentMethods, currentUser, companyInfo, suppliers, embedded = false 
 }) => {
     const { confirm } = useConfirm();
-    const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-    const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-    
     const { 
         paginatedData, 
         currentPage, 
@@ -75,28 +71,22 @@ const TransactionsModal: React.FC<TransactionsModalProps> = ({
         }, { income: 0, expense: 0 });
     }, [transactions]);
 
-    const handleOpenExpenseModal = (expense: Expense | null) => {
-        setEditingExpense(expense);
-        setIsExpenseModalOpen(true);
-    };
+    const exportToExcel = () => {
+        const data = transactions.map(t => ({
+            Fecha: t.date,
+            Descripción: t.description,
+            Ingreso: t.type === 'Ingreso' ? t.amount : 0,
+            Gasto: t.type === 'Gasto' ? t.amount : 0
+        }));
 
-    const handleSaveExpense = async (expense: Expense) => {
-        await onSaveExpense(expense);
-        setIsExpenseModalOpen(false);
-    };
-    
-    const handleDeleteClick = async (e: React.MouseEvent, expenseId: string) => {
-        e.stopPropagation();
-        const isConfirmed = await confirm({
-            title: 'Eliminar Gasto',
-            message: '¿Está seguro de que desea eliminar este gasto? Esta acción no se puede deshacer.',
-            confirmText: 'Sí, Eliminar',
-            variant: 'danger'
+        data.push({
+            Fecha: 'TOTALES',
+            Descripción: `TOTAL NETO: ${totals.income - totals.expense}`,
+            Ingreso: totals.income,
+            Gasto: totals.expense
         });
 
-        if (isConfirmed) {
-            await onDeleteExpense(expenseId);
-        }
+        utilsExportToExcel(data, 'Libro_Transacciones');
     };
     
     const getStatusBadge = (t: Transaction) => {
@@ -125,90 +115,60 @@ const TransactionsModal: React.FC<TransactionsModalProps> = ({
 
     const Content = (
         <>
-            <div className="flex justify-end mb-4">
-                    {permissions['libro-contable.create'] && (<Button onClick={() => handleOpenExpenseModal(null)}><PlusIcon className="w-4 h-4 mr-2" /> Añadir Gasto</Button>)}
-            </div>
-            <div className="overflow-x-auto max-h-[60vh]">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Fecha</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Descripción</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-black uppercase">Estado</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-black uppercase">Ingreso</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-black uppercase">Gasto</th>
-                            <th className="relative px-6 py-3"><span className="sr-only">Acciones</span></th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-black">
-                        {paginatedData.map(t => (
-                            <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-black">{t.date}</td>
-                                <td className="px-6 py-4 text-sm text-black">{t.description}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                    {getStatusBadge(t)}
+                <div className="flex justify-between mb-4">
+                    <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Transacciones (Ingresos y Gastos)</h3>
+                    <Button onClick={exportToExcel} variant="secondary">
+                        <FileSpreadsheetIcon className="w-4 h-4 mr-2" /> Exportar a Excel
+                    </Button>
+                </div>
+                <div className="overflow-x-auto max-h-[60vh]">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Fecha</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Descripción</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-black uppercase">Ingreso</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-black uppercase">Gasto</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-black">
+                            {paginatedData.map(t => (
+                                <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">{t.date}</td>
+                                    <td className="px-6 py-4 text-sm text-black">{t.description}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-sm text-green-600">
+                                        {t.type === 'Ingreso' ? formatCurrency(t.amount) : ''}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-sm text-red-600">
+                                        {t.type === 'Gasto' ? formatCurrency(t.amount) : ''}
+                                    </td>
+                                </tr>
+                            ))}
+                                {paginatedData.length === 0 && (
+                                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500">No hay transacciones para mostrar.</td></tr>
+                                )}
+                        </tbody>
+                        <tfoot className="bg-gray-50 dark:bg-gray-700/50 font-semibold text-black">
+                            <tr>
+                                <td className="px-6 py-3 text-left text-sm text-black" colSpan={2}>
+                                    TOTAL NETO (Ingresos - Gastos): <span className={totals.income - totals.expense >= 0 ? 'text-green-600' : 'text-red-600'}>{formatCurrency(totals.income - totals.expense)}</span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-sm text-green-600">
-                                    {t.type === 'Ingreso' ? formatCurrency(t.amount) : ''}
+                                <td className="px-6 py-3 text-right text-sm text-green-600">
+                                    {formatCurrency(totals.income)}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-sm text-red-600">
-                                    {t.type === 'Gasto' ? formatCurrency(t.amount) : ''}
-                                </td>
-                                <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
-                                    {t.type === 'Gasto' && permissions['libro-contable.edit'] && <Button variant="secondary" size="sm" onClick={() => handleOpenExpenseModal(t.originalDoc as Expense)}><EditIcon className="w-4 h-4"/></Button>}
-                                    {t.type === 'Gasto' && permissions['libro-contable.delete'] && (
-                                        <Button 
-                                            variant="danger" 
-                                            size="sm" 
-                                            type="button"
-                                            onClick={(e) => handleDeleteClick(e, t.originalDoc.id)}
-                                        >
-                                            <TrashIcon className="w-4 h-4"/>
-                                        </Button>
-                                    )}
+                                <td className="px-6 py-3 text-right text-sm text-red-600">
+                                    {formatCurrency(totals.expense)}
                                 </td>
                             </tr>
-                        ))}
-                            {paginatedData.length === 0 && (
-                            <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500">No hay transacciones para mostrar.</td></tr>
-                            )}
-                    </tbody>
-                        <tfoot className="bg-gray-50 dark:bg-gray-700/50 font-semibold text-black">
-                        <tr>
-                            <td className="px-6 py-3 text-left text-sm text-black" colSpan={3}>
-                                TOTALES ({totalItems} registros)
-                            </td>
-                            <td className="px-6 py-3 text-right text-sm text-green-600">
-                                {formatCurrency(totals.income)}
-                            </td>
-                            <td className="px-6 py-3 text-right text-sm text-red-600">
-                                {formatCurrency(totals.expense)}
-                            </td>
-                            <td className="px-6 py-3"></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+                        </tfoot>
+                    </table>
+                </div>
                 <PaginationControls
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
                 totalItems={totalItems}
                 itemsPerPage={ITEMS_PER_PAGE}
-            />
-            
-            <ExpenseFormModal
-                isOpen={isExpenseModalOpen}
-                onClose={() => setIsExpenseModalOpen(false)}
-                onSave={handleSaveExpense}
-                expense={editingExpense}
-                expenseCategories={expenseCategories}
-                offices={offices}
-                paymentMethods={paymentMethods}
-                currentUser={currentUser}
-                companyInfo={companyInfo}
-                suppliers={suppliers}
-                permissions={permissions}
             />
         </>
     );

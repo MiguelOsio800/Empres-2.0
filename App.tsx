@@ -21,6 +21,7 @@ import ShippingTypesView from './components/shipping-types/ShippingTypesView';
 import PaymentMethodsView from './components/payment-methods/PaymentMethodsView';
 import { SYSTEM_REPORTS } from './constants';
 import LibroContableView from './components/libro-contable/LibroContableView';
+import GastosView from './components/gastos/GastosView';
 import InventarioView from './components/inventario/InventarioView';
 import InventarioLandingView from './components/inventario/InventarioLandingView';
 import BienesView from './components/inventario/BienesView';
@@ -111,7 +112,7 @@ const AppContent: React.FC = () => {
             const [page, param, subParam, ...filterValueParts] = hash.split('/');
             const filterValue = filterValueParts.join('/');
             
-            const validPages: Page[] = ['dashboard', 'shipping-guide', 'invoices', 'asociados', 'reports', 'configuracion', 'categories', 'edit-invoice', 'report-detail', 'clientes', 'proveedores', 'offices', 'shipping-types', 'payment-methods', 'libro-contable', 'inventario', 'auditoria', 'inventario-bienes', 'inventario-envios', 'bienes-categorias', 'asociados-gestion', 'asociados-estadisticas', 'asociados-reportes', 'asociados-pagos', 'remesas', 'flota', 'flota-vehiculos', 'cobranzas'];
+            const validPages: Page[] = ['dashboard', 'shipping-guide', 'invoices', 'asociados', 'reports', 'configuracion', 'categories', 'edit-invoice', 'report-detail', 'clientes', 'proveedores', 'gastos', 'offices', 'shipping-types', 'payment-methods', 'libro-contable', 'inventario', 'auditoria', 'inventario-bienes', 'inventario-envios', 'bienes-categorias', 'asociados-gestion', 'asociados-estadisticas', 'asociados-reportes', 'asociados-pagos', 'remesas', 'flota', 'flota-vehiculos', 'cobranzas'];
             
             setEditingInvoiceId(null);
             setViewingReport(null);
@@ -134,6 +135,7 @@ const AppContent: React.FC = () => {
                 'asociados-pagos': 'asociados.view',
                 'clientes': 'clientes.view',
                 'proveedores': 'proveedores.view',
+                'gastos': 'libro-contable.create',
                 'libro-contable': 'libro-contable.view',
                 'inventario': 'inventario.view',
                 'inventario-envios': 'inventario-envios.view',
@@ -236,6 +238,16 @@ const AppContent: React.FC = () => {
                             }
                             return invoiceToEdit ? <EditInvoiceView invoice={invoiceToEdit} onSaveInvoice={handleUpdateInvoice} categories={categories} clients={clients} offices={offices} shippingTypes={shippingTypes} paymentMethods={paymentMethods} companyInfo={companyInfo} currentUser={currentUser} permissions={userPermissions} /> : <div>Factura no encontrada</div>;
                         case 'invoices': return <InvoicesView invoices={filteredInvoices} clients={clients} categories={categories} userPermissions={userPermissions} onUpdateStatuses={handleUpdateInvoiceStatuses} onDeleteInvoice={handleDeleteInvoice} companyInfo={companyInfo} initialFilter={invoiceFilter} offices={offices} />;
+                        case 'gastos': return <GastosView 
+                            expenses={expenses}
+                            suppliers={suppliers}
+                            expenseCategories={expenseCategories}
+                            offices={offices}
+                            paymentMethods={paymentMethods}
+                            currentUser={currentUser}
+                            onSaveExpense={handleSaveExpense}
+                            onDeleteExpense={handleDeleteExpense}
+                        />;
                         case 'remesas': return <RemesasView 
                             remesas={filteredRemesas} 
                             asociados={asociados}
