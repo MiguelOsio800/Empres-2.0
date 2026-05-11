@@ -40,7 +40,7 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-    const { addToast } = useToast();
+    const { showToast } = useToast();
 
     useEffect(() => {
         if (asociado.id) {
@@ -55,22 +55,14 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
         const cedulaTrim = updatedAsociado.cedula?.trim();
 
         if (!codigoTrim || !nombreTrim || !cedulaTrim) {
-            addToast({
-                type: 'error',
-                title: 'Error de Validación',
-                message: 'Los campos Código, Nombre y Cédula son obligatorios.'
-            });
+            showToast('Los campos Código, Nombre y Cédula son obligatorios.', 'error');
             return;
         }
 
         // Validación de formato de Cédula (Ej: V-12345678 o 12345678)
         const cedulaRegex = /^[VEve]?[-]?[0-9]{5,9}$/;
         if (!cedulaRegex.test(cedulaTrim)) {
-            addToast({
-                type: 'error',
-                title: 'Formato Inválido',
-                message: 'La Cédula debe tener un formato válido (ej: V-12345678 o solo números).'
-            });
+            showToast('La Cédula debe tener un formato válido (ej: V-12345678 o solo números).', 'error');
             return;
         }
 
@@ -82,18 +74,10 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
             const savedAsociado = await props.onSaveAsociado(payload);
             
             if (hasId) {
-                addToast({
-                    type: 'success',
-                    title: 'Actualización exitosa',
-                    message: 'Conductor actualizado correctamente.'
-                });
+                showToast('Conductor actualizado correctamente.', 'success');
                 onBack(); // Redirigir a la búsqueda tras actualizar
             } else {
-                addToast({
-                    type: 'success',
-                    title: 'Registro exitoso',
-                    message: 'Conductor creado correctamente.'
-                });
+                showToast('Conductor creado correctamente.', 'success');
                 onBack(); // Redirigir a la búsqueda
             }
             
@@ -102,17 +86,9 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
             
             // Manejo específico de duplicados (409 Conflict)
             if (error.message?.toLowerCase().includes('already exists') || error.message?.toLowerCase().includes('duplicado') || error.status === 409) {
-                addToast({
-                    type: 'error',
-                    title: 'Dato Duplicado',
-                    message: 'El Código o la Cédula ya pertenecen a otro conductor registrado.'
-                });
+                showToast('El Código o la Cédula ya pertenecen a otro conductor registrado.', 'error');
             } else {
-                addToast({
-                    type: 'error',
-                    title: 'Error',
-                    message: error.message || 'No se pudo guardar el conductor. Verifique los datos.'
-                });
+                showToast(error.message || 'No se pudo guardar el conductor. Verifique los datos.', 'error');
             }
         } finally {
             setIsLoading(false);
@@ -123,15 +99,11 @@ const AsociadoDetailView: React.FC<AsociadoDetailViewProps> = (props) => {
         setIsLoading(true);
         try {
             await onDeleteAsociado(currentAsociado.id);
-            addToast({ type: 'success', title: 'Eliminado', message: 'Conductor eliminado correctamente.' });
+            showToast('Conductor eliminado correctamente.', 'success');
             onBack();
         } catch (error: any) {
             console.error("Error al eliminar asociado:", error);
-            addToast({ 
-                type: 'error', 
-                title: 'Error', 
-                message: error.message || 'No se pudo eliminar el conductor.' 
-            });
+            showToast(error.message || 'No se pudo eliminar el conductor.', 'error');
         } finally {
             setIsLoading(false);
             setIsConfirmDeleteOpen(false);

@@ -11,6 +11,7 @@ import { calculateInvoiceChargeableWeight, calculateDetailedRemesaFinancials } f
 import AssignInvoiceModal from '../flota/AssignInvoiceModal';
 import Input from '../ui/Input';
 import { useConfirm } from '../../contexts/ConfirmationContext';
+import { useToast } from '../ui/ToastProvider';
 
 interface RemesasViewProps {
     remesas: Remesa[];
@@ -47,6 +48,7 @@ const RemesasView: React.FC<RemesasViewProps> = (props) => {
 
     const [isManifestModalOpen, setIsManifestModalOpen] = useState(false);
     const [remesaForManifest, setRemesaForManifest] = useState<Remesa | null>(null);
+    const { showToast } = useToast();
 
     const associateVehicles = useMemo(() => {
         if (!selectedAsociadoId) return [];
@@ -93,25 +95,28 @@ const RemesasView: React.FC<RemesasViewProps> = (props) => {
         const vehicle = vehicles.find(v => v.id === vehicleId);
         if (!vehicle) return;
         
-        // FIX: Only dispatch invoices that are 'Pendiente para Despacho' and NOT already in a remesa
         const assignedInvoices = getAssignedInvoices(vehicleId);
         
         if (assignedInvoices.length === 0) {
-            alert("No hay facturas pendientes para despachar en este vehículo.");
+            showToast('No hay facturas pendientes para despachar en este vehículo.', 'error');
             return;
         }
 
-        const invoiceIds = assignedInvoices.map(inv => inv.id);
-        
-        // Calculate cooperativeAmount via financials
-        const currentAsociado = asociados.find(a => a.id === vehicle.asociadoId);
-        const financials = calculateDetailedRemesaFinancials(assignedInvoices, companyInfo, shippingTypes, currentAsociado);
-        
-        const exchangeRate = companyInfo.bcvRate || 1;
-        const newRemesa = await onDispatchVehicle(vehicleId, invoiceIds, exchangeRate, vehicle.asociadoId, financials.cooperativeAmount);
-        if (newRemesa) {
-            setRemesaForManifest(newRemesa);
-            setIsManifestModalOpen(true);
+        try {
+            const invoiceIds = assignedInvoices.map(inv => inv.id);
+            
+            const currentAsociado = asociados.find(a => a.id === vehicle.asociadoId);
+            const financials = calculateDetailedRemesaFinancials(assignedInvoices, companyInfo, shippingTypes, currentAsociado);
+            
+            const exchangeRate = companyInfo.bcvRate || 1;
+            const newRemesa = await onDispatchVehicle(vehicleId, invoiceIds, exchangeRate, vehicle.asociadoId, financials.cooperativeAmount);
+            if (newRemesa) {
+                showToast('Despacho realizado con éxito.', 'success');
+                setRemesaForManifest(newRemesa);
+                setIsManifestModalOpen(true);
+            }
+        } catch (error: any) {
+            showToast('Error en el despacho: ' + error.message, 'error');
         }
     };
 
@@ -143,7 +148,12 @@ const RemesasView: React.FC<RemesasViewProps> = (props) => {
             variant: 'danger'
         });
         if (isConfirmed) {
-            await onDeleteRemesa(remesaId);
+            try {
+                await onDeleteRemesa(remesaId);
+                showToast('Remesa eliminada correctamente.', 'success');
+            } catch (error: any) {
+                showToast('Error al eliminar: ' + error.message, 'error');
+            }
         }
     };
 

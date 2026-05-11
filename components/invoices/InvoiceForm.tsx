@@ -44,7 +44,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSave, invoice = null, compa
     
     // Permission check for managing office
     const canManageAllOffices = permissions?.['invoices.manage_all_offices'];
-    const { addToast } = useToast();
+    const { showToast } = useToast();
     
     const getInitialGuideState = useCallback((): ShippingGuide => {
         if (invoice) return invoice.guide;
@@ -285,20 +285,25 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSave, invoice = null, compa
 
     const handleSave = async () => {
         if (!validateForm()) {
-            addToast({ type: 'error', title: 'Error de Validación', message: 'Por favor, corrija los campos marcados en rojo.' });
+            showToast('Por favor, corrija los campos marcados en rojo.', 'error');
             return;
         }
         const invoiceObject = buildInvoiceObject();
         
-        let savedInvoice: Invoice | null = null;
-        if (invoice) { // Edit mode
-            savedInvoice = await (onSave as EditFormProps['onSave'])(invoiceObject as Invoice);
-        } else { // Create mode
-            savedInvoice = await (onSave as CreateFormProps['onSave'])(invoiceObject as Omit<Invoice, 'status' | 'shippingStatus'>);
-        }
+        try {
+            let savedInvoice: Invoice | null = null;
+            if (invoice) { // Edit mode
+                savedInvoice = await (onSave as EditFormProps['onSave'])(invoiceObject as Invoice);
+            } else { // Create mode
+                savedInvoice = await (onSave as CreateFormProps['onSave'])(invoiceObject as Omit<Invoice, 'status' | 'shippingStatus'>);
+            }
 
-        if (savedInvoice) {
-            window.location.hash = 'invoices';
+            if (savedInvoice) {
+                showToast('Factura guardada correctamente', 'success');
+                window.location.hash = 'invoices';
+            }
+        } catch (error: any) {
+            showToast('Error al guardar la factura: ' + error.message, 'error');
         }
     };
 

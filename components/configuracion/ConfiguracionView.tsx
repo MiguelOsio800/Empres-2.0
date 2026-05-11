@@ -34,7 +34,7 @@ const CompanyInfoSettings: React.FC<{ info: CompanyInfo; onSave: (info: CompanyI
     const [formData, setFormData] = React.useState(info);
     const logoFileInputRef = React.useRef<HTMLInputElement>(null);
     const bgFileInputRef = React.useRef<HTMLInputElement>(null);
-    const { addToast } = useToast();
+    const { showToast } = useToast();
     const [isFetchingRate, setIsFetchingRate] = React.useState(false);
     
     React.useEffect(() => setFormData(info), [info]);
@@ -59,20 +59,20 @@ const CompanyInfoSettings: React.FC<{ info: CompanyInfo; onSave: (info: CompanyI
 
     const handleFetchBcvRate = async () => {
         setIsFetchingRate(true);
-        addToast({ type: 'info', title: 'Consultando Tasa', message: 'Obteniendo tasa de cambio actualizada desde el servidor...' });
+        showToast('Obteniendo tasa de cambio actualizada desde el servidor...', 'info');
         try {
             const response = await apiFetch<{ rate: number }>('/company-info/bcv-rate');
             
             if (response && typeof response.rate === 'number') {
                 const rate = response.rate;
                 setFormData(prev => ({ ...prev, bcvRate: rate }));
-                addToast({ type: 'success', title: 'Tasa Actualizada', message: `Tasa BCV obtenida: ${rate}` });
+                showToast(`Tasa BCV obtenida: ${rate}`, 'success');
             } else {
                 throw new Error('Respuesta inválida del servidor.');
             }
         } catch (error: any) {
             console.error("Error al obtener la tasa del BCV desde el backend:", error);
-            addToast({ type: 'error', title: 'Error', message: error.message || 'No se pudo obtener la tasa del BCV automáticamente.' });
+            showToast(error.message || 'No se pudo obtener la tasa del BCV automáticamente.', 'error');
         } finally {
             setIsFetchingRate(false);
         }
@@ -80,7 +80,12 @@ const CompanyInfoSettings: React.FC<{ info: CompanyInfo; onSave: (info: CompanyI
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await onSave(formData);
+        try {
+            await onSave(formData);
+            showToast('Información guardada correctamente', 'success');
+        } catch (error: any) {
+            showToast('Error al guardar: ' + error.message, 'error');
+        }
     };
 
     return (

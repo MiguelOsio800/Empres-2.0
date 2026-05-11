@@ -23,6 +23,7 @@ type ConfigContextType = {
     handleLogout: () => Promise<void>;
     handleCompanyInfoSave: (info: CompanyInfo) => Promise<void>;
     handleSaveUser: (user: User) => Promise<void>;
+    handleSaveProfile: (user: Partial<User>) => Promise<void>;
     onDeleteUser: (userId: string) => Promise<void>;
     handleSaveRole: (role: Role) => Promise<void>;
     onDeleteRole: (roleId: string) => Promise<void>;
@@ -223,12 +224,45 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
     };
 
+    const handleSaveProfile = async (userData: Partial<User>) => {
+        try {
+            console.log('UserData requested to save:', userData);
+            const apiResponse = await apiFetch<any>('/users/profile', {
+                method: 'PUT',
+                body: JSON.stringify(userData)
+            });
+            console.log('Backend response upUser:', apiResponse);
+            
+            // Assume the response might return { user: { ... } } or the raw user
+            const upUser = apiResponse?.user || apiResponse;
+            
+            // Start with the current user, merge whatever the user just typed
+            let updatedUser = { ...(currentUser || {}), ...userData };
+            
+            // If the backend actually returned a valid user object with an ID, merge it in
+            if (upUser && typeof upUser === 'object' && upUser.id) {
+                 updatedUser = { ...updatedUser, ...upUser };
+            }
+
+            setCurrentUser(updatedUser as User);
+            setUsers(prev => prev.map(u => u.id === updatedUser.id ? (updatedUser as User) : u));
+            addToast({ type: 'success', title: 'Éxito', message: 'Perfil actualizado correctamente' });
+            if (currentUser) {
+                logAction(updatedUser as User, 'UPDATE', 'Actualización de perfil propio', updatedUser.id);
+            }
+        } catch (error: any) {
+            addToast({ type: 'error', title: 'Error', message: error.message || 'Error actualizando perfil' });
+            throw error;
+        }
+    };
+
     return (
         <ConfigContext.Provider value={{
             companyInfo, categories, users, roles, offices, shippingTypes, paymentMethods, expenseCategories, cuentasContables,
             userPermissions, isLoading,
             handleLogin, handleLogout, handleCompanyInfoSave, onUpdateRolePermissions,
             handleSaveUser: (u) => handleAuxSave(u, '/users', setUsers, 'Usuario'),
+            handleSaveProfile,
             onDeleteUser: (id) => handleAuxDelete(id, '/users', setUsers, 'Usuario'),
             handleSaveRole: (r) => handleAuxSave(r, '/roles', setRoles, 'Rol'),
             onDeleteRole: (id) => handleAuxDelete(id, '/roles', setRoles, 'Rol'),

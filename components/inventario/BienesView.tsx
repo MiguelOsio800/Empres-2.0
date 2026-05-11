@@ -9,6 +9,7 @@ import Select from '../ui/Select';
 import Input from '../ui/Input';
 import usePagination from '../../hooks/usePagination';
 import PaginationControls from '../ui/PaginationControls';
+import { useToast } from '../ui/ToastProvider';
 
 const statusColors: { [key: string]: string } = {
     'Activo': 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300',
@@ -33,6 +34,8 @@ const BienesView: React.FC<BienesViewProps> = ({ assets, offices, assetCategorie
     const [selectedOffice, setSelectedOffice] = useState<string>('all');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [searchTerm, setSearchTerm] = useState('');
+
+    const { showToast } = useToast();
 
     const filteredAssets = useMemo(() => {
         return assets
@@ -76,8 +79,13 @@ const BienesView: React.FC<BienesViewProps> = ({ assets, offices, assetCategorie
     };
 
     const handleSave = async (asset: Asset) => {
-        await onSave(asset);
-        setIsModalOpen(false);
+        try {
+            await onSave(asset);
+            setIsModalOpen(false);
+            showToast('Bien guardado correctamente.', 'success');
+        } catch (error: any) {
+            showToast('Error al guardar el bien: ' + error.message, 'error');
+        }
     };
 
     const getOfficeName = (officeId?: string) => {
@@ -196,7 +204,14 @@ const BienesView: React.FC<BienesViewProps> = ({ assets, offices, assetCategorie
                                         {permissions['inventario-bienes.edit'] && <Button variant="secondary" size="sm" onClick={() => handleOpenModal(asset)}><EditIcon className="w-4 h-4"/></Button>}
                                         {permissions['inventario-bienes.delete'] && <Button variant="danger" size="sm" onClick={async (e) => {
                                             e.stopPropagation();
-                                            await onDelete(asset.id);
+                                            if (window.confirm('¿Eliminar este bien?')) {
+                                                try {
+                                                    await onDelete(asset.id);
+                                                    showToast('Bien eliminado correctamente.', 'success');
+                                                } catch (error: any) {
+                                                    showToast('Error al eliminar: ' + error.message, 'error');
+                                                }
+                                            }
                                         }}><TrashIcon className="w-4 h-4"/></Button>}
                                     </td>
                                 </tr>

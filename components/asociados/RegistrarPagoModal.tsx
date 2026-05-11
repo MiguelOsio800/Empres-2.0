@@ -5,6 +5,7 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import Select from '../ui/Select';
 import { PlusIcon, TrashIcon } from '../icons/Icons';
+import { useToast } from '../ui/ToastProvider';
 
 interface RegistrarPagoModalProps {
     isOpen: boolean;
@@ -28,6 +29,7 @@ const RegistrarPagoModal: React.FC<RegistrarPagoModalProps> = ({ isOpen, onClose
     const [selectedPagoIds, setSelectedPagoIds] = useState<string[]>([]);
     const [detallesPago, setDetallesPago] = useState<DetallePago[]>([{ tipo: 'Transferencia', monto: 0 }]);
     const [fechaPago, setFechaPago] = useState(new Date().toISOString().split('T')[0]);
+    const { showToast } = useToast();
 
     const totalAPagar = useMemo(() => {
         return pagosPendientes
@@ -89,11 +91,11 @@ const RegistrarPagoModal: React.FC<RegistrarPagoModalProps> = ({ isOpen, onClose
 
     const handleSubmit = () => {
         if (diferencia !== 0) {
-            alert('El monto pagado debe ser igual al total a pagar.');
+            showToast('El monto pagado debe ser igual al total a pagar.', 'error');
             return;
         }
         if (selectedPagoIds.length === 0) {
-            alert('Debe seleccionar al menos un concepto a pagar.');
+            showToast('Debe seleccionar al menos un concepto a pagar.', 'error');
             return;
         }
 

@@ -16,7 +16,7 @@ interface PlanContableViewProps {
 const PlanContableView: React.FC<PlanContableViewProps> = ({ cuentas, setCuentas, permissions }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCuenta, setEditingCuenta] = useState<CuentaContable | null>(null);
-    const { addToast } = useToast();
+    const { showToast } = useToast();
 
     const handleOpenModal = (cuenta: CuentaContable | null) => {
         setEditingCuenta(cuenta);
@@ -26,11 +26,11 @@ const PlanContableView: React.FC<PlanContableViewProps> = ({ cuentas, setCuentas
     const handleSave = (cuenta: CuentaContable) => {
         if (cuenta.id) { // Update
             setCuentas(cuentas.map(c => c.id === cuenta.id ? cuenta : c));
-            addToast({ type: 'success', title: 'Cuenta Actualizada', message: `La cuenta '${cuenta.nombre}' se guardó.` });
+            showToast(`La cuenta '${cuenta.nombre}' se guardó.`, 'success');
         } else { // Create
             const newCuenta = { ...cuenta, id: `cta-${Date.now()}` };
             setCuentas([...cuentas, newCuenta]);
-            addToast({ type: 'success', title: 'Cuenta Creada', message: `La cuenta '${newCuenta.nombre}' ha sido creada.` });
+            showToast(`La cuenta '${newCuenta.nombre}' ha sido creada.`, 'success');
         }
         setIsModalOpen(false);
     };
@@ -39,11 +39,8 @@ const PlanContableView: React.FC<PlanContableViewProps> = ({ cuentas, setCuentas
         e.stopPropagation();
         if (window.confirm('¿Está seguro de que desea eliminar esta cuenta contable? Esta acción no se puede deshacer.')) {
             const cuentaNombre = cuentas.find(c => c.id === cuentaId)?.nombre || 'La cuenta';
-            // Note: In a real app this should likely call a backend function passed via props
-            // Here we are updating local state as per the original component design, 
-            // but ensuring the UI event is handled correctly.
             setCuentas(cuentas.filter(c => c.id !== cuentaId));
-            addToast({ type: 'success', title: 'Cuenta Eliminada', message: `${cuentaNombre} ha sido eliminada.` });
+            showToast(`${cuentaNombre} ha sido eliminada.`, 'success');
         }
     };
     

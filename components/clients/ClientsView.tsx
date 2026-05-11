@@ -8,6 +8,7 @@ import ClientFormModal from './ClientFormModal';
 import usePagination from '../../hooks/usePagination';
 import PaginationControls from '../ui/PaginationControls';
 import Input from '../ui/Input';
+import { useToast } from '../ui/ToastProvider';
 
 interface ClientsViewProps {
     clients: Client[];
@@ -41,14 +42,33 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, onSave, onDelete, pe
         totalItems
     } = usePagination(filteredClients, ITEMS_PER_PAGE);
 
+    const { showToast } = useToast();
+
     const handleOpenModal = (client: Client | null) => {
         setEditingClient(client);
         setIsModalOpen(true);
     };
 
     const handleSaveClient = async (client: Client) => {
-        await onSave(client);
-        setIsModalOpen(false);
+        try {
+            await onSave(client);
+            setIsModalOpen(false);
+            showToast('Cliente guardado exitosamente', 'success');
+        } catch (error: any) {
+            showToast('Error al guardar cliente: ' + error.message, 'error');
+        }
+    };
+
+    const handleDeleteClient = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (window.confirm('¿Eliminar este cliente?')) {
+            try {
+                await onDelete(id);
+                showToast('Cliente eliminado', 'success');
+            } catch (error: any) {
+                showToast('Error al eliminar: ' + error.message, 'error');
+            }
+        }
     };
 
     return (
@@ -107,10 +127,7 @@ const ClientsView: React.FC<ClientsViewProps> = ({ clients, onSave, onDelete, pe
                                             <Button 
                                                 variant="danger" 
                                                 size="sm" 
-                                                onClick={async (e) => {
-                                                    e.stopPropagation();
-                                                    await onDelete(client.id);
-                                                }}
+                                                onClick={(e) => handleDeleteClient(client.id, e)}
                                             >
                                                 <TrashIcon className="w-4 h-4"/>
                                             </Button>

@@ -5,6 +5,7 @@ import Button from '../ui/Button';
 import { TrashIcon, PlusIcon } from '../icons/Icons';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
+import { useToast } from '../ui/ToastProvider';
 
 interface GastosViewProps {
     expenses: Expense[];
@@ -25,6 +26,7 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
     // So basically a dynamic list of new expenses to be saved.
     
     const [draftExpenses, setDraftExpenses] = useState<Partial<Expense>[]>([{ id: 'draft-1', date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
+    const { showToast } = useToast();
 
     const handleAddRow = () => {
         setDraftExpenses([...draftExpenses, { id: `draft-${Date.now()}`, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
@@ -39,38 +41,43 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
     };
 
     const handleSaveAll = async () => {
-        for (const draft of draftExpenses) {
-            if (draft.supplierId && draft.categoryId && draft.amount && draft.amount > 0 && draft.description) {
-                // If it's a new draft, pass empty ID so the backend generates it.
-                // DataContext's handleGenericSave will see empty string, do a POST, 
-                // and use the returned object (with GASTO-A-00... id) to update the global state.
-                const newId = draft.id?.startsWith('draft-') ? '' : draft.id;
-                const fullExpense: Expense = {
-                    id: newId!,
-                    amount: draft.amount,
-                    currency: 'Bs',
-                    date: draft.date || new Date().toISOString(),
-                    supplierId: draft.supplierId,
-                    supplierName: suppliers.find(s => s.id === draft.supplierId)?.name || '',
-                    categoryId: draft.categoryId,
-                    category: expenseCategories.find(c => c.id === draft.categoryId)?.name || '',
-                    description: draft.description,
-                    officeId: draft.officeId || currentUser.officeId || offices[0]?.id || '',
-                    paymentMethodId: paymentMethods[0]?.id || '', // Default as it wasn't requested
-                    status: 'Pagado',
-                    createdAt: new Date().toISOString()
-                };
-                await onSaveExpense(fullExpense);
+        try {
+            for (const draft of draftExpenses) {
+                if (draft.supplierId && draft.categoryId && draft.amount && draft.amount > 0 && draft.description) {
+                    const newId = draft.id?.startsWith('draft-') ? '' : draft.id;
+                    const fullExpense: Expense = {
+                        id: newId!,
+                        amount: draft.amount,
+                        currency: 'Bs',
+                        date: draft.date || new Date().toISOString(),
+                        supplierId: draft.supplierId,
+                        supplierName: suppliers.find(s => s.id === draft.supplierId)?.name || '',
+                        categoryId: draft.categoryId,
+                        category: expenseCategories.find(c => c.id === draft.categoryId)?.name || '',
+                        description: draft.description,
+                        officeId: draft.officeId || currentUser.officeId || offices[0]?.id || '',
+                        paymentMethodId: paymentMethods[0]?.id || '', 
+                        status: 'Pagado',
+                        createdAt: new Date().toISOString()
+                    };
+                    await onSaveExpense(fullExpense);
+                }
             }
+            setDraftExpenses([{ id: `draft-${Date.now()}`, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
+            showToast('Gastos guardados exitosamente', 'success');
+        } catch (error: any) {
+            showToast('Error al guardar gastos: ' + error.message, 'error');
         }
-        // Reset after saving
-        setDraftExpenses([{ id: `draft-${Date.now()}`, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
-        alert('Gastos guardados exitosamente');
     };
 
     const handleDeleteSaved = async (id: string) => {
          if (window.confirm('¿Eliminar este gasto?')) {
-             await onDeleteExpense(id);
+             try {
+                 await onDeleteExpense(id);
+                 showToast('Gasto eliminado', 'success');
+             } catch (error: any) {
+                 showToast('Error al eliminar: ' + error.message, 'error');
+             }
          }
     };
 

@@ -5,6 +5,7 @@ import Card, { CardHeader, CardTitle } from '../ui/Card';
 import Button from '../ui/Button';
 import { PlusIcon, EditIcon, TrashIcon, ArrowLeftIcon, TagIcon } from '../icons/Icons';
 import BienesCategoryFormModal from './BienesCategoryFormModal';
+import { useToast } from '../ui/ToastProvider';
 
 interface BienesCategoryViewProps {
     categories: AssetCategory[];
@@ -16,6 +17,7 @@ interface BienesCategoryViewProps {
 const BienesCategoryView: React.FC<BienesCategoryViewProps> = ({ categories, onSave, onDelete, permissions }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<AssetCategory | null>(null);
+    const { showToast } = useToast();
 
     const handleOpenModal = (category: AssetCategory | null) => {
         setEditingCategory(category);
@@ -23,8 +25,13 @@ const BienesCategoryView: React.FC<BienesCategoryViewProps> = ({ categories, onS
     };
 
     const handleSave = async (category: AssetCategory) => {
-        await onSave(category);
-        setIsModalOpen(false);
+        try {
+            await onSave(category);
+            setIsModalOpen(false);
+            showToast('Categoría guardada correctamente.', 'success');
+        } catch (error: any) {
+            showToast('Error al guardar la categoría: ' + error.message, 'error');
+        }
     };
 
     if (!permissions['bienes-categorias.view']) {
@@ -80,7 +87,14 @@ const BienesCategoryView: React.FC<BienesCategoryViewProps> = ({ categories, onS
                                         {permissions['bienes-categorias.delete'] && (
                                             <Button variant="danger" size="sm" onClick={async (e) => {
                                                 e.stopPropagation();
-                                                await onDelete(cat.id);
+                                                if (window.confirm('¿Eliminar esta categoría?')) {
+                                                    try {
+                                                        await onDelete(cat.id);
+                                                        showToast('Categoría eliminada correctamente.', 'success');
+                                                    } catch (error: any) {
+                                                        showToast('Error al eliminar: ' + error.message, 'error');
+                                                    }
+                                                }
                                             }}><TrashIcon className="w-4 h-4"/></Button>
                                         )}
                                     </td>

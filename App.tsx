@@ -50,7 +50,7 @@ const AppContent: React.FC = () => {
         companyInfo, users, roles, offices, categories, shippingTypes, paymentMethods, 
         expenseCategories, userPermissions, isLoading: isLoadingConfig,
         handleLogin, handleLogout,
-        handleCompanyInfoSave, handleSaveUser, onDeleteUser, handleSaveRole, onDeleteRole, 
+        handleCompanyInfoSave, handleSaveUser, handleSaveProfile, onDeleteUser, handleSaveRole, onDeleteRole, 
         onUpdateRolePermissions, handleSaveCategory, onDeleteCategory, handleSaveOffice,
         onDeleteOffice, handleSaveShippingType, onDeleteShippingType, handleSavePaymentMethod, 
         onDeletePaymentMethod, handleSaveExpenseCategory, onDeleteExpenseCategory,
@@ -432,7 +432,7 @@ const AppContent: React.FC = () => {
                         roles={roles}
                         offices={offices}
                         asociados={asociados}
-                        onSaveUser={handleSaveUser}
+                        onSaveUser={handleSaveProfile}
                     />
                     <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-800">
                         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">

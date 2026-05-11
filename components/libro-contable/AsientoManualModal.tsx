@@ -18,7 +18,7 @@ interface AsientoManualModalProps {
 const formatCurrency = (amount: number) => `Bs. ${amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const AsientoManualModal: React.FC<AsientoManualModalProps> = ({ isOpen, onClose, onSave, cuentasContables }) => {
-    const { addToast } = useToast();
+    const { showToast } = useToast();
     const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
     const [descripcion, setDescripcion] = useState('');
     const [entries, setEntries] = useState<AsientoManualEntry[]>([
@@ -40,7 +40,7 @@ const AsientoManualModal: React.FC<AsientoManualModalProps> = ({ isOpen, onClose
         if (entries.length > 2) {
             setEntries(entries.filter(entry => entry.id !== id));
         } else {
-            addToast({ type: 'warning', title: 'Acción no permitida', message: 'Un asiento debe tener al menos dos líneas.' });
+            showToast('Un asiento debe tener al menos dos líneas.', 'warning');
         }
     };
 
@@ -59,15 +59,15 @@ const AsientoManualModal: React.FC<AsientoManualModalProps> = ({ isOpen, onClose
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!isBalanced) {
-            addToast({ type: 'error', title: 'Asiento Desbalanceado', message: 'El total del Debe y el Haber deben ser iguales.' });
+            showToast('El total del Debe y el Haber deben ser iguales.', 'error');
             return;
         }
         if (entries.some(e => !e.cuentaId)) {
-            addToast({ type: 'error', title: 'Cuentas Faltantes', message: 'Todas las líneas deben tener una cuenta contable seleccionada.' });
+            showToast('Todas las líneas deben tener una cuenta contable seleccionada.', 'error');
             return;
         }
         if (!descripcion.trim()) {
-            addToast({ type: 'error', title: 'Descripción Requerida', message: 'Por favor, ingrese una descripción para el asiento.' });
+            showToast('Por favor, ingrese una descripción para el asiento.', 'error');
             return;
         }
 

@@ -12,6 +12,7 @@ interface ToastMessage {
 
 interface ToastContextType {
     addToast: (toast: Omit<ToastMessage, 'id'>) => void;
+    showToast: (message: string, type: ToastType) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -41,14 +42,15 @@ const Toast: React.FC<{ toast: ToastMessage; onDismiss: (id: number) => void }> 
     const baseClasses = "max-w-sm w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden";
     const animationClasses = isExiting ? 'animate-fade-out-right' : 'animate-fade-in-right';
 
-    const typeStyles = {
+    const typeStyles: Record<string, { icon: React.ElementType, color: string }> = {
         success: { icon: CheckCircleIcon, color: 'text-green-500' },
         error: { icon: XCircleIcon, color: 'text-red-500' },
         info: { icon: InformationCircleIcon, color: 'text-blue-500' },
         warning: { icon: ExclamationTriangleIcon, color: 'text-yellow-500' },
     };
 
-    const { icon: Icon, color } = typeStyles[type];
+    const safeType = typeStyles[type] ? type : 'info';
+    const { icon: Icon, color } = typeStyles[safeType];
 
     return (
         <div className={`${baseClasses} ${animationClasses}`}>
@@ -117,12 +119,17 @@ const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setToasts(prevToasts => [...prevToasts, { ...toast, id }]);
     }, []);
 
+    const showToast = useCallback((message: string, type: ToastType) => {
+        const title = type.charAt(0).toUpperCase() + type.slice(1);
+        addToast({ type, title, message });
+    }, [addToast]);
+
     const removeToast = useCallback((id: number) => {
         setToasts(prevToasts => prevToasts.filter(toast => toast.id !== id));
     }, []);
 
     return (
-        <ToastContext.Provider value={{ addToast }}>
+        <ToastContext.Provider value={{ addToast, showToast }}>
             {children}
             <ToastContainer toasts={toasts} onDismiss={removeToast} />
         </ToastContext.Provider>

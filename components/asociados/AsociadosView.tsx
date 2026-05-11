@@ -49,7 +49,7 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
     const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
     const [asociadoToDelete, setAsociadoToDelete] = useState<string | null>(null);
 
-    const { addToast } = useToast();
+    const { showToast } = useToast();
 
     const fetchAsociados = useCallback(() => {
         setIsLoading(true);
@@ -65,7 +65,6 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
                 );
             }
             
-            // Sort by codigo by default
             filtered.sort((a, b) => {
                 const codA = a.codigo || '';
                 const codB = b.codigo || '';
@@ -79,11 +78,11 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
             setTotal(filtered.length);
         } catch (error) {
             console.error('Error processing asociados:', error);
-            addToast({ type: 'error', title: 'Error', message: 'No se pudieron cargar los conductores.' });
+            showToast('No se pudieron cargar los conductores.', 'error');
         } finally {
             setIsLoading(false);
         }
-    }, [asociados, page, limit, searchTerm, addToast]);
+    }, [asociados, page, limit, searchTerm, showToast]);
 
     useEffect(() => {
         fetchAsociados();
@@ -126,15 +125,11 @@ const AsociadosGestionView: React.FC<AsociadosGestionViewProps> = (props) => {
         setIsLoading(true);
         try {
             await onDeleteAsociado(asociadoToDelete);
-            addToast({ type: 'success', title: 'Eliminado', message: 'Conductor eliminado correctamente.' });
+            showToast('Conductor eliminado correctamente.', 'success');
             fetchAsociados();
         } catch (error: any) {
             console.error('Error deleting asociado:', error);
-            addToast({ 
-                type: 'error', 
-                title: 'Error', 
-                message: error.message || 'No se pudo eliminar el conductor.' 
-            });
+            showToast(error.message || 'No se pudo eliminar el conductor.', 'error');
         } finally {
             setIsLoading(false);
             setIsConfirmDeleteOpen(false);

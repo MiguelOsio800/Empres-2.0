@@ -8,6 +8,7 @@ import SupplierFormModal from './SupplierFormModal';
 import usePagination from '../../hooks/usePagination';
 import PaginationControls from '../ui/PaginationControls';
 import Input from '../ui/Input';
+import { useToast } from '../ui/ToastProvider';
 
 interface SuppliersViewProps {
     suppliers: Supplier[];
@@ -22,6 +23,8 @@ const SuppliersView: React.FC<SuppliersViewProps> = ({ suppliers, onSave, onDele
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+
+    const { showToast } = useToast();
 
     const filteredSuppliers = useMemo(() => {
         if (!searchTerm) return suppliers;
@@ -46,8 +49,25 @@ const SuppliersView: React.FC<SuppliersViewProps> = ({ suppliers, onSave, onDele
     };
 
     const handleSaveSupplier = async (supplier: Supplier) => {
-        await onSave(supplier);
-        setIsModalOpen(false);
+        try {
+            await onSave(supplier);
+            setIsModalOpen(false);
+            showToast('Proveedor guardado correctamente', 'success');
+        } catch (error: any) {
+            showToast('Error al guardar proveedor: ' + error.message, 'error');
+        }
+    };
+
+    const handleDeleteSupplier = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (window.confirm('¿Desea eliminar este proveedor?')) {
+            try {
+                await onDelete(id);
+                showToast('Proveedor eliminado correctamente.', 'success');
+            } catch (error: any) {
+                showToast('Error al eliminar: ' + error.message, 'error');
+            }
+        }
     };
 
     return (
@@ -100,10 +120,7 @@ const SuppliersView: React.FC<SuppliersViewProps> = ({ suppliers, onSave, onDele
                                                 variant="danger" 
                                                 size="sm" 
                                                 type="button"
-                                                onClick={async (e) => {
-                                                    e.stopPropagation();
-                                                    await onDelete(supplier.id);
-                                                }}
+                                                onClick={(e) => handleDeleteSupplier(supplier.id, e)}
                                             >
                                                 <TrashIcon className="w-4 h-4"/>
                                             </Button>
