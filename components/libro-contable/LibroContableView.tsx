@@ -266,13 +266,6 @@ const LibroContableView: React.FC<LibroContableViewProps> = (props) => {
                     onClick={() => setActiveModal('expenseCategories')}
                     colorVariant="orange"
                 />
-                <AccountingTile
-                    title="Asiento Manual"
-                    description="Registrar ajustes contables manuales."
-                    icon={BookOpenIcon}
-                    onClick={() => setActiveModal('asientoManual')}
-                    colorVariant="blue"
-                />
             </div>
 
             {activeModal === 'transactions' && (
@@ -351,14 +344,6 @@ const LibroContableView: React.FC<LibroContableViewProps> = (props) => {
                     isOpen={activeModal === 'libroCompras'}
                     onClose={handleCloseAllModals}
                     expenses={filteredDateExpenses}
-                />
-            )}
-            {activeModal === 'asientoManual' && (
-                 <AsientoManualModal
-                    isOpen={activeModal === 'asientoManual'}
-                    onClose={handleCloseAllModals}
-                    onSave={onSaveAsientoManual}
-                    cuentasContables={cuentasContables}
                 />
             )}
         </div>

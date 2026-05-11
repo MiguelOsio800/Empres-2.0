@@ -4,6 +4,7 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { UserIcon, LockIcon, PackageIcon } from '../icons/Icons';
 import { CompanyInfo } from '../../types';
+import { useToast } from '../ui/ToastProvider';
 
 interface LoginViewProps {
   onLogin: (username: string, password: string, rememberMe: boolean) => Promise<void>;
@@ -17,6 +18,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, companyInfo }) => {
   const [errors, setErrors] = useState<{ username?: string, password?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const rememberedUserOnLoad = useRef(localStorage.getItem('rememberedUser'));
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (rememberedUserOnLoad.current) {
@@ -49,6 +51,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, companyInfo }) => {
     setIsLoading(true);
     try {
         await onLogin(username, password, rememberMe);
+        addToast({ type: 'success', title: 'Éxito', message: 'El usuario ingresó correctamente.' });
+    } catch (error: any) {
+        addToast({ type: 'error', title: 'Error', message: error.message || 'Usuario o contraseña incorrectos.' });
     } finally {
         // We keep loading true if login is successful as the app redirects/remounts
         // But if it failed (and onLogin threw or returned), we stop loading.
