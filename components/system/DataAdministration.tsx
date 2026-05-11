@@ -25,7 +25,7 @@ const DataAdministration: React.FC = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `backup_${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}.json`;
             a.click();
             URL.revokeObjectURL(url);
             addToast({ type: 'success', title: 'Respaldo Exitoso', message: 'Los datos se han descargado.' });

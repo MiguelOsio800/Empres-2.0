@@ -153,7 +153,7 @@ const LibroDiarioModal: React.FC<LibroDiarioModalProps> = ({ isOpen, onClose, tr
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Libro Diario");
-        XLSX.writeFile(workbook, `Libro_Diario_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(workbook, `Libro_Diario_${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}.xlsx`);
     };
 
     return (

@@ -92,7 +92,7 @@ const GenerarDeudaProduccionModal: React.FC<GenerarDeudaProduccionModalProps> = 
                 montoUsd: montoBs / bcvRate,
                 tasaCambio: bcvRate,
                 status: 'Pendiente',
-                fecha: new Date().toISOString().split('T')[0]
+                fecha: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
             };
         } else { // Carga
             if (!calculation || calculation.debt === 0) {
@@ -112,7 +112,7 @@ const GenerarDeudaProduccionModal: React.FC<GenerarDeudaProduccionModalProps> = 
                 montoUsd: calculation.debt / bcvRate,
                 tasaCambio: bcvRate,
                 status: 'Pendiente',
-                fecha: new Date().toISOString().split('T')[0]
+                fecha: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
             };
         }
         

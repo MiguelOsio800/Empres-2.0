@@ -17,7 +17,7 @@ interface GenerarCargoMasivoModalProps {
 const GenerarCargoMasivoModal: React.FC<GenerarCargoMasivoModalProps> = ({ isOpen, onClose, onConfirm, asociados, bcvRate }) => {
     const [concepto, setConcepto] = useState('');
     const [cuotas, setCuotas] = useState('1/1');
-    const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+    const [fecha, setFecha] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
     const [monto, setMonto] = useState<number | ''>('');
     const [montoUsd, setMontoUsd] = useState<number | ''>('');
     const [searchTerm, setSearchTerm] = useState('');

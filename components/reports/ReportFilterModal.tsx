@@ -24,8 +24,8 @@ const ReportFilterModal: React.FC<ReportFilterModalProps> = ({ isOpen, onClose, 
                     ))}
                 </Select>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Input label="Fecha desde" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
-                    <Input label="Fecha hasta" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
+                    <Input label="Fecha desde" type="date" defaultValue={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]} />
+                    <Input label="Fecha hasta" type="date" defaultValue={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]} />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

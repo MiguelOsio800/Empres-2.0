@@ -190,7 +190,7 @@ const LibroMayorModal: React.FC<LibroMayorModalProps> = ({ isOpen, onClose, tran
 
              const workbook = XLSX.utils.book_new();
              XLSX.utils.book_append_sheet(workbook, worksheet, "Libro Mayor");
-             XLSX.writeFile(workbook, `Libro_Mayor_${new Date().toISOString().split('T')[0]}.xlsx`);
+             XLSX.writeFile(workbook, `Libro_Mayor_${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}.xlsx`);
         }
     };
 

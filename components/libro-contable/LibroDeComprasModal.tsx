@@ -76,7 +76,7 @@ const LibroDeComprasModal: React.FC<LibroDeComprasModalProps> = ({ isOpen, onClo
         const worksheet = XLSX.utils.json_to_sheet(finalData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Libro_Compras");
-        XLSX.writeFile(workbook, `Libro_de_Compras_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(workbook, `Libro_de_Compras_${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}.xlsx`);
     };
 
     return (

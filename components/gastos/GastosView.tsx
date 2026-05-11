@@ -25,11 +25,11 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
     // "El modulo de gastos va a funcionar como un crud, pero va a ser con el diseño de captura de pantalla... un crud que solo me permita escoger el proveedor la categoria del gasto y los datos de cuanto fue"
     // So basically a dynamic list of new expenses to be saved.
     
-    const [draftExpenses, setDraftExpenses] = useState<Partial<Expense>[]>([{ id: 'draft-1', date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
+    const [draftExpenses, setDraftExpenses] = useState<Partial<Expense>[]>([{ id: 'draft-1', date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0], officeId: currentUser.officeId || offices[0]?.id || '' }]);
     const { showToast } = useToast();
 
     const handleAddRow = () => {
-        setDraftExpenses([...draftExpenses, { id: `draft-${Date.now()}`, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
+        setDraftExpenses([...draftExpenses, { id: `draft-${Date.now()}`, date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0], officeId: currentUser.officeId || offices[0]?.id || '' }]);
     };
 
     const handleRemoveRow = (id: string) => {
@@ -49,7 +49,7 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
                         id: newId!,
                         amount: draft.amount,
                         currency: 'Bs',
-                        date: draft.date || new Date().toISOString(),
+                        date: draft.date || new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString(),
                         supplierId: draft.supplierId,
                         supplierName: suppliers.find(s => s.id === draft.supplierId)?.name || '',
                         categoryId: draft.categoryId,
@@ -58,12 +58,12 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
                         officeId: draft.officeId || currentUser.officeId || offices[0]?.id || '',
                         paymentMethodId: paymentMethods[0]?.id || '', 
                         status: 'Pagado',
-                        createdAt: new Date().toISOString()
+                        createdAt: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString()
                     };
                     await onSaveExpense(fullExpense);
                 }
             }
-            setDraftExpenses([{ id: `draft-${Date.now()}`, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
+            setDraftExpenses([{ id: `draft-${Date.now()}`, date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0], officeId: currentUser.officeId || offices[0]?.id || '' }]);
             showToast('Gastos guardados exitosamente', 'success');
         } catch (error: any) {
             showToast('Error al guardar gastos: ' + error.message, 'error');
@@ -90,7 +90,7 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
                             <CardTitle>Registro de Gastos</CardTitle>
                             <p className="text-sm text-gray-500">Añada los gastos de forma rápida seleccionando Proveedor, Categoría y Monto.</p>
                         </div>
-                        <Button onClick={handleAddRow}><PlusIcon className="w-4 h-4 mr-2" /> Añadir Fila</Button>
+                        <Button onClick={handleAddRow}><PlusIcon className="w-4 h-4" /></Button>
                     </div>
                 </CardHeader>
                 <div className="px-6 py-4">
@@ -141,7 +141,7 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
                         </table>
                     </div>
                     <div className="mt-4 flex justify-end">
-                        <Button onClick={handleSaveAll} variant="primary">Guardar Novedades</Button>
+                        <Button onClick={handleSaveAll} variant="primary">Guardar Gasto</Button>
                     </div>
                 </div>
             </Card>

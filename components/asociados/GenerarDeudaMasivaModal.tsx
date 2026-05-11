@@ -23,7 +23,7 @@ interface GenerarDeudaMasivaModalProps {
 const GenerarDeudaMasivaModal: React.FC<GenerarDeudaMasivaModalProps> = ({ isOpen, onClose, onGenerate, companyInfo }) => {
     const [concepto, setConcepto] = useState('');
     const [cuotas, setCuotas] = useState('');
-    const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+    const [fecha, setFecha] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
     const [montoBs, setMontoBs] = useState<number | ''>('');
     const [montoUsd, setMontoUsd] = useState<number | ''>('');
     const [applyTo, setApplyTo] = useState<'Activo' | 'Todos'>('Activo');

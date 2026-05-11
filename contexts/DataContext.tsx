@@ -484,7 +484,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     tasaCambio: Number(p.tasaCambio || p.tasa_cambio || payload.tasaCambio),
                     status: p.status || 'Pendiente',
                     reciboId: p.reciboId || p.recibo_id,
-                    fecha: p.fecha || p.fecha_generacion || (payload as any).fecha || new Date().toISOString().split('T')[0]
+                    fecha: p.fecha || p.fecha_generacion || (payload as any).fecha || new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
                 }));
 
                 if (newPayments.length > 0) {

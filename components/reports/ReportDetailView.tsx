@@ -612,7 +612,7 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
             const ws = XLSX.utils.aoa_to_sheet(plainData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, ws, sheetName);
-            XLSX.writeFile(workbook, `${sheetName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.writeFile(workbook, `${sheetName}_${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}.xlsx`);
             return;
         }
 
@@ -624,7 +624,7 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-        XLSX.writeFile(workbook, `${sheetName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(workbook, `${sheetName}_${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}.xlsx`);
     };
 
     const handleExportPDF = async () => {
@@ -899,7 +899,7 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                 }
             }
 
-            pdf.save(`${sheetName}_${new Date().toISOString().split('T')[0]}.pdf`);
+            pdf.save(`${sheetName}_${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}.pdf`);
         } catch (error) {
             console.error("Error generating PDF:", error);
             alert("Hubo un error al generar el PDF.");

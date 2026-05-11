@@ -53,7 +53,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const logAction = useCallback(async (user: User, actionType: string, details: string, targetId?: string) => {
         if (!user) return;
         const newLogEntry: Omit<AuditLog, 'id'> = {
-            timestamp: new Date().toISOString(),
+            timestamp: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString(),
             userId: user.id,
             userName: user.name,
             action: actionType,
@@ -87,7 +87,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                     lineno: errorInfo.lineno,
                     colno: errorInfo.colno,
                     error: errorInfo.error,
-                    timestamp: new Date().toISOString(),
+                    timestamp: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString(),
                     userId: currentUser?.id,
                     userName: currentUser?.name
                 })
@@ -106,7 +106,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 lineno: lineno || 0,
                 colno: colno || 0,
                 error: error ? error.stack || error.toString() : 'N/A',
-                timestamp: new Date().toISOString(),
+                timestamp: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString(),
             };
             setAppErrors(prev => [errorData, ...prev.slice(0, 99)]);
             reportErrorToBackend(errorData);

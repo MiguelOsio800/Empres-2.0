@@ -93,7 +93,7 @@ const LibroVentasModal: React.FC<LibroVentasModalProps> = ({ isOpen, onClose, in
         const worksheet = XLSX.utils.json_to_sheet(finalData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Libro_Ventas");
-        XLSX.writeFile(workbook, `Libro_de_Ventas_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(workbook, `Libro_de_Ventas_${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}.xlsx`);
     };
 
     return (

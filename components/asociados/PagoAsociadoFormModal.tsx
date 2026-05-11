@@ -32,7 +32,7 @@ const PagoAsociadoFormModal: React.FC<PagoAsociadoFormModalProps> = ({ isOpen, o
                 montoUsd: 0,
                 status: 'Pendiente',
                 tasaCambio: bcvRate,
-                fecha: new Date().toISOString().split('T')[0]
+                fecha: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
             };
             setFormData(initialData);
             setMontoBs(initialData.montoBs || '');
@@ -83,7 +83,7 @@ const PagoAsociadoFormModal: React.FC<PagoAsociadoFormModalProps> = ({ isOpen, o
             montoBs: typeof montoBs === 'number' ? montoBs : 0,
             montoUsd: typeof montoUsd === 'number' ? montoUsd : 0,
             tasaCambio: rate,
-            fecha: formData.fecha || new Date().toISOString().split('T')[0]
+            fecha: formData.fecha || new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
         };
         onSave(finalData as PagoAsociado);
     };

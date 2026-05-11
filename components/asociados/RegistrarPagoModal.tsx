@@ -28,7 +28,7 @@ const formatCurrency = (amount: number) => `Bs. ${amount.toLocaleString('es-VE',
 const RegistrarPagoModal: React.FC<RegistrarPagoModalProps> = ({ isOpen, onClose, asociado, pagosPendientes, onSaveRecibo, companyInfo }) => {
     const [selectedPagoIds, setSelectedPagoIds] = useState<string[]>([]);
     const [detallesPago, setDetallesPago] = useState<DetallePago[]>([{ tipo: 'Transferencia', monto: 0 }]);
-    const [fechaPago, setFechaPago] = useState(new Date().toISOString().split('T')[0]);
+    const [fechaPago, setFechaPago] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
     const { showToast } = useToast();
 
     const totalAPagar = useMemo(() => {

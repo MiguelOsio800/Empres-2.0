@@ -22,7 +22,7 @@ const CertificadoFormModal: React.FC<CertificadoFormModalProps> = ({ isOpen, onC
                 vehiculoId: vehiculoId,
                 codigo: '',
                 descripcion: '',
-                fechaInicio: new Date().toISOString().split('T')[0],
+                fechaInicio: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
                 status: 'Activo'
             });
         }

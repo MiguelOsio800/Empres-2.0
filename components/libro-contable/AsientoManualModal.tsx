@@ -19,7 +19,7 @@ const formatCurrency = (amount: number) => `Bs. ${amount.toLocaleString('es-VE',
 
 const AsientoManualModal: React.FC<AsientoManualModalProps> = ({ isOpen, onClose, onSave, cuentasContables }) => {
     const { showToast } = useToast();
-    const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+    const [fecha, setFecha] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
     const [descripcion, setDescripcion] = useState('');
     const [entries, setEntries] = useState<AsientoManualEntry[]>([
         { id: `row-${Date.now()}`, cuentaId: '', debe: 0, haber: 0 },
@@ -83,7 +83,7 @@ const AsientoManualModal: React.FC<AsientoManualModalProps> = ({ isOpen, onClose
     // Reset state on close
     useEffect(() => {
         if (!isOpen) {
-            setFecha(new Date().toISOString().split('T')[0]);
+            setFecha(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
             setDescripcion('');
             setEntries([
                 { id: `row-${Date.now()}`, cuentaId: '', debe: 0, haber: 0 },

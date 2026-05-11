@@ -34,7 +34,7 @@ const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({ isOpen, onClose, on
         if (isOpen) {
             const defaultOfficeId = !canManageAllOffices && currentUser.officeId ? currentUser.officeId : (expense?.officeId || '');
             const initialData = expense || {
-                date: new Date().toISOString().split('T')[0],
+                date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
                 description: '',
                 category: expenseCategories[0]?.name || '',
                 amount: 0,
