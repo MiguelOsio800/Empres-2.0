@@ -13,20 +13,21 @@ interface GastosViewProps {
     offices: Office[];
     paymentMethods: PaymentMethod[];
     currentUser: User;
+    permissions: Record<string, boolean>;
     onSaveExpense: (expense: Expense) => Promise<void>;
     onDeleteExpense: (expenseId: string) => Promise<void>;
 }
 
-const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCategories, offices, paymentMethods, currentUser, onSaveExpense, onDeleteExpense }) => {
+const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCategories, offices, paymentMethods, currentUser, permissions, onSaveExpense, onDeleteExpense }) => {
     // We will keep a local state for the "new" expenses being drafted.
     // The previously saved expenses will be listed below, or just have a single dynamic list?
     // "El modulo de gastos va a funcionar como un crud, pero va a ser con el diseño de captura de pantalla... un crud que solo me permita escoger el proveedor la categoria del gasto y los datos de cuanto fue"
     // So basically a dynamic list of new expenses to be saved.
     
-    const [draftExpenses, setDraftExpenses] = useState<Partial<Expense>[]>([{ id: 'draft-1', amount: 0, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
+    const [draftExpenses, setDraftExpenses] = useState<Partial<Expense>[]>([{ id: 'draft-1', date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
 
     const handleAddRow = () => {
-        setDraftExpenses([...draftExpenses, { id: `draft-${Date.now()}`, amount: 0, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
+        setDraftExpenses([...draftExpenses, { id: `draft-${Date.now()}`, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
     };
 
     const handleRemoveRow = (id: string) => {
@@ -39,16 +40,21 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
 
     const handleSaveAll = async () => {
         for (const draft of draftExpenses) {
-            if (draft.supplierId && draft.categoryId && draft.amount && draft.amount > 0) {
-                const newId = draft.id?.startsWith('draft-') ? `exp-${Date.now()}-${Math.floor(Math.random()*1000)}` : draft.id;
+            if (draft.supplierId && draft.categoryId && draft.amount && draft.amount > 0 && draft.description) {
+                // If it's a new draft, pass empty ID so the backend generates it.
+                // DataContext's handleGenericSave will see empty string, do a POST, 
+                // and use the returned object (with GASTO-A-00... id) to update the global state.
+                const newId = draft.id?.startsWith('draft-') ? '' : draft.id;
                 const fullExpense: Expense = {
                     id: newId!,
                     amount: draft.amount,
                     currency: 'Bs',
                     date: draft.date || new Date().toISOString(),
                     supplierId: draft.supplierId,
+                    supplierName: suppliers.find(s => s.id === draft.supplierId)?.name || '',
                     categoryId: draft.categoryId,
-                    description: draft.description || 'Gasto registrado',
+                    category: expenseCategories.find(c => c.id === draft.categoryId)?.name || '',
+                    description: draft.description,
                     officeId: draft.officeId || currentUser.officeId || offices[0]?.id || '',
                     paymentMethodId: paymentMethods[0]?.id || '', // Default as it wasn't requested
                     status: 'Pagado',
@@ -58,7 +64,7 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
             }
         }
         // Reset after saving
-        setDraftExpenses([{ id: `draft-${Date.now()}`, amount: 0, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
+        setDraftExpenses([{ id: `draft-${Date.now()}`, date: new Date().toISOString().slice(0, 10), officeId: currentUser.officeId || offices[0]?.id || '' }]);
         alert('Gastos guardados exitosamente');
     };
 
@@ -88,6 +94,7 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proveedor</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto (Bs)</th>
                                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Acción</th>
                                 </tr>
@@ -111,7 +118,10 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
                                             </Select>
                                         </td>
                                         <td className="px-2 py-2">
-                                            <Input type="number" min="0" step="0.01" value={draft.amount || 0} onChange={e => handleChange(draft.id!, 'amount', parseFloat(e.target.value))} />
+                                            <Input placeholder="Descripción del gasto" value={draft.description || ''} onChange={e => handleChange(draft.id!, 'description', e.target.value)} />
+                                        </td>
+                                        <td className="px-2 py-2">
+                                            <Input type="number" min="0" step="any" value={draft.amount === undefined ? '' : draft.amount} onChange={e => handleChange(draft.id!, 'amount', e.target.value === '' ? undefined : parseFloat(e.target.value))} />
                                         </td>
                                         <td className="px-2 py-2 text-center">
                                             <Button variant="danger" size="sm" onClick={() => handleRemoveRow(draft.id!)}>
@@ -141,6 +151,7 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proveedor</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
                                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto (Bs)</th>
                                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Acción</th>
                                 </tr>
@@ -149,18 +160,21 @@ const GastosView: React.FC<GastosViewProps> = ({ expenses, suppliers, expenseCat
                                 {expenses.sort((a,b)=> new Date(b.date).getTime() - new Date(a.date).getTime()).map(exp => (
                                     <tr key={exp.id}>
                                          <td className="px-4 py-3 text-sm">{exp.date.split('T')[0]}</td>
-                                         <td className="px-4 py-3 text-sm">{suppliers.find(s => s.id === exp.supplierId)?.name || 'N/A'}</td>
-                                         <td className="px-4 py-3 text-sm">{expenseCategories.find(c => c.id === exp.categoryId)?.name || 'N/A'}</td>
+                                         <td className="px-4 py-3 text-sm">{(exp.supplierId ? suppliers.find(s => s.id === exp.supplierId)?.name : exp.supplierName) || 'N/A'}</td>
+                                         <td className="px-4 py-3 text-sm">{(exp.categoryId ? expenseCategories.find(c => c.id === exp.categoryId)?.name : exp.category) || 'N/A'}</td>
+                                         <td className="px-4 py-3 text-sm">{exp.description}</td>
                                          <td className="px-4 py-3 text-sm text-right text-red-600 font-semibold">{exp.amount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</td>
                                          <td className="px-4 py-3 text-center">
-                                            <Button variant="danger" size="sm" onClick={() => handleDeleteSaved(exp.id)}>
-                                                <TrashIcon className="w-4 h-4" />
-                                            </Button>
+                                            {permissions['gastos.delete'] && (
+                                                <Button variant="danger" size="sm" onClick={() => handleDeleteSaved(exp.id)}>
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </Button>
+                                            )}
                                          </td>
                                     </tr>
                                 ))}
                                 {expenses.length === 0 && (
-                                    <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No hay gastos guardados.</td></tr>
+                                    <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No hay gastos guardados.</td></tr>
                                 )}
                             </tbody>
                         </table>

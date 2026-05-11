@@ -844,7 +844,7 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                     const refDolares = companyInfo.bcvRate > 0 ? totalGeneral / companyInfo.bcvRate : 0;
                     const totalGastosOficina = dateFilteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
                     const totalFacturas = (sourceData as Invoice[]).reduce((sum, inv) => sum + inv.totalAmount, 0);
-                    const totalEmpresa = totalFacturas;
+                    const totalEmpresa = totalFacturas - totalGastosOficina;
                     const refDolaresEmpresa = companyInfo.bcvRate > 0 ? totalEmpresa / companyInfo.bcvRate : 0;
 
                     // @ts-ignore
@@ -1371,7 +1371,7 @@ const ReportDetailView: React.FC<ReportDetailViewProps> = ({ report, invoices, c
                     const totalGeneral = empresaPagado + empresaDestino + credito + ipostelTotal + seguroTotal + manejoTotal + mudanza;
                     const refDolares = companyInfo.bcvRate > 0 ? totalGeneral / companyInfo.bcvRate : 0;
                     const totalGastosOficina = dateFilteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-                    const totalEmpresa = generalTotalsUI.total;
+                    const totalEmpresa = generalTotalsUI.total - totalGastosOficina;
                     const refDolaresEmpresa = companyInfo.bcvRate > 0 ? totalEmpresa / companyInfo.bcvRate : 0;
 
                     summary = (

@@ -8,6 +8,7 @@ import { FileSpreadsheetIcon } from '../icons/Icons';
 import usePagination from '../../hooks/usePagination';
 import PaginationControls from '../ui/PaginationControls';
 import { exportToExcel as utilsExportToExcel } from '../../utils/exportUtils';
+import { useConfirm } from '../../contexts/ConfirmationContext';
 
 const formatCurrency = (amount: number) => `Bs. ${amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 

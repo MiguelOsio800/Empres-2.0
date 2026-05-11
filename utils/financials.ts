@@ -199,7 +199,7 @@ export const calculateDetailedRemesaFinancials = (
     result.cooperativeAmount = result.totalPagado * (isNoAsociado ? 0.30 : 1.00) + result.totalDestino * (isNoAsociado ? 0.30 : 1.00);
     result.saldoFinal = result.cooperativeAmount;
     result.conceptoSaldo = 'Total Empresa';
-    result.modalidadSaldo = 'N/A';
+    result.modalidadSaldo = 'Iguales';
 
     return result;
 };

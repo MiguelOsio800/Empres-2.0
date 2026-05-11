@@ -99,7 +99,7 @@ const AppContent: React.FC = () => {
     // Backend ya filtra la data por seguridad. 
     // Usamos las variables en su estado natural para conservar dependencias.
     const filteredInvoices = invoices;
-    const filteredExpenses = expenses;
+    const filteredExpenses = hasGlobalAccess ? expenses : expenses.filter(e => e.officeId === currentUser?.officeId);
     const filteredInventory = inventory;
     const filteredRemesas = remesas;
     const viewableOffices = offices;
@@ -135,7 +135,7 @@ const AppContent: React.FC = () => {
                 'asociados-pagos': 'asociados.view',
                 'clientes': 'clientes.view',
                 'proveedores': 'proveedores.view',
-                'gastos': 'libro-contable.create',
+                'gastos': 'gastos.create',
                 'libro-contable': 'libro-contable.view',
                 'inventario': 'inventario.view',
                 'inventario-envios': 'inventario-envios.view',
@@ -239,12 +239,13 @@ const AppContent: React.FC = () => {
                             return invoiceToEdit ? <EditInvoiceView invoice={invoiceToEdit} onSaveInvoice={handleUpdateInvoice} categories={categories} clients={clients} offices={offices} shippingTypes={shippingTypes} paymentMethods={paymentMethods} companyInfo={companyInfo} currentUser={currentUser} permissions={userPermissions} /> : <div>Factura no encontrada</div>;
                         case 'invoices': return <InvoicesView invoices={filteredInvoices} clients={clients} categories={categories} userPermissions={userPermissions} onUpdateStatuses={handleUpdateInvoiceStatuses} onDeleteInvoice={handleDeleteInvoice} companyInfo={companyInfo} initialFilter={invoiceFilter} offices={offices} />;
                         case 'gastos': return <GastosView 
-                            expenses={expenses}
+                            expenses={filteredExpenses}
                             suppliers={suppliers}
                             expenseCategories={expenseCategories}
                             offices={offices}
                             paymentMethods={paymentMethods}
                             currentUser={currentUser}
+                            permissions={userPermissions}
                             onSaveExpense={handleSaveExpense}
                             onDeleteExpense={handleDeleteExpense}
                         />;
@@ -327,8 +328,11 @@ const AppContent: React.FC = () => {
                             const reportInvoices = reportOfficeId && reportOfficeId !== 'all' 
                                 ? filteredInvoices.filter(inv => inv.guide.originOfficeId === reportOfficeId)
                                 : filteredInvoices;
+                            const reportExpenses = reportOfficeId && reportOfficeId !== 'all'
+                                ? filteredExpenses.filter(e => e.officeId === reportOfficeId)
+                                : filteredExpenses;
 
-                            return viewingReport ? <ReportDetailView report={viewingReport} invoices={reportInvoices} clients={clients} expenses={filteredExpenses} offices={viewableOffices} companyInfo={companyInfo} paymentMethods={paymentMethods} vehicles={vehicles} categories={categories} asociados={asociados} shippingTypes={shippingTypes} reportOfficeId={reportOfficeId} /> : <div>Reporte no encontrado</div>;
+                            return viewingReport ? <ReportDetailView report={viewingReport} invoices={reportInvoices} clients={clients} expenses={reportExpenses} offices={viewableOffices} companyInfo={companyInfo} paymentMethods={paymentMethods} vehicles={vehicles} categories={categories} asociados={asociados} shippingTypes={shippingTypes} reportOfficeId={reportOfficeId} /> : <div>Reporte no encontrado</div>;
                         case 'categories': return <CategoryView categories={categories} onSave={handleSaveCategory} onDelete={onDeleteCategory} permissions={userPermissions} />;
                         case 'clientes': return <ClientsView clients={clients} onSave={handleSaveClient} onDelete={handleDeleteClient} permissions={userPermissions} />;
                         case 'proveedores': return <SuppliersView suppliers={suppliers} onSave={handleSaveSupplier} onDelete={handleDeleteSupplier} permissions={userPermissions} />;

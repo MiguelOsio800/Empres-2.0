@@ -282,11 +282,14 @@ export interface Expense {
     date: string;
     description: string;
     category: string; // ExpenseCategory name
+    categoryId?: string; // Add categoryId
     amount: number; // This is the TOTAL amount
+    currency?: string; // Add currency
     officeId?: string;
     status: 'Pagado' | 'Pendiente';
     
     // SENIAT fields for Libro de Compras
+    supplierId?: string; // Add supplierId
     supplierRif?: string;
     supplierName?: string;
     invoiceNumber?: string; // N de factura del proveedor
@@ -294,6 +297,7 @@ export interface Expense {
     taxableBase?: number; // Base imponible
     vatAmount?: number; // Monto del IVA
     paymentMethodId?: string;
+    createdAt?: string;
 }
 
 export interface InventoryItem {
