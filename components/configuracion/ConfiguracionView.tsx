@@ -37,7 +37,9 @@ const CompanyInfoSettings: React.FC<{ info: CompanyInfo; onSave: (info: CompanyI
     const { showToast } = useToast();
     const [isFetchingRate, setIsFetchingRate] = React.useState(false);
     
-    React.useEffect(() => setFormData(info), [info]);
+    React.useEffect(() => {
+        if (info) setFormData(info);
+    }, [info]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type } = e.target;
@@ -81,12 +83,14 @@ const CompanyInfoSettings: React.FC<{ info: CompanyInfo; onSave: (info: CompanyI
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await onSave(formData);
+            await onSave({ ...info, ...formData });
             showToast('Información guardada correctamente', 'success');
         } catch (error: any) {
             showToast('Error al guardar: ' + error.message, 'error');
         }
     };
+
+    if (!formData) return <div>Cargando...</div>;
 
     return (
         <Card>

@@ -130,22 +130,22 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
                     {/* HOJA 1: FACTURA - Altura optimizada a 1120px para margen de seguridad */}
                     <div style={{ padding: '20px', minHeight: '1120px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
                         {/* Header Section */}
-                        <div className="flex justify-between items-start border-b-2 border-green-600 pb-3 mb-4">
+                        <div className="flex justify-between items-start border-b-2 border-blue-600 pb-3 mb-4">
                             <div className="flex items-center gap-4 max-w-[60%]">
                                 {companyInfo.logoUrl ? (
                                     <img src={companyInfo.logoUrl} alt="Logo" className="h-16 w-auto object-contain" />
                                 ) : (
-                                    <div className="p-2 border rounded"><PackageIcon className="h-12 w-12 text-green-600" /></div>
+                                    <div className="p-2 border rounded"><PackageIcon className="h-12 w-12 text-blue-600" /></div>
                                 )}
                                 <div>
-                                    <h1 className="text-lg font-bold uppercase text-green-700 leading-none mb-1">{companyInfo.name}</h1>
+                                    <h1 className="text-lg font-bold uppercase text-blue-700 leading-none mb-1">{companyInfo.name}</h1>
                                     <p className="text-[10px] font-bold text-gray-700">RIF: {companyInfo.rif}</p>
                                     <p className="text-[10px] text-gray-600">Habilitación Postal: {companyInfo.postalLicense || 'N/A'}</p>
                                     <p className="text-[10px] text-gray-600 leading-tight break-words">{companyInfo.address}</p>
                                     <p className="text-[10px] text-gray-600">Telf: {companyInfo.phone}</p>
                                     
                                     <div className="mt-1.5 pt-1 border-t border-gray-200">
-                                        <p className="text-[10px] font-bold text-green-800">
+                                        <p className="text-[10px] font-bold text-blue-800">
                                             OFICINA EMISORA: <span className="font-normal text-black uppercase">{originOffice?.name || 'N/A'}</span>
                                             <span className="text-gray-500 font-normal ml-1">(CÓD: {originOffice?.code || 'N/A'})</span>
                                         </p>
@@ -153,7 +153,7 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
                                 </div>
                             </div>
                             <div className="text-right">
-                                <h2 className="text-3xl font-black uppercase tracking-wide text-green-600">PROFORMA</h2>
+                                <h2 className="text-3xl font-black uppercase tracking-wide text-blue-600">PROFORMA</h2>
                                 <div className="mt-1 flex flex-col items-end space-y-0.5">
                                     <p className="text-sm font-bold text-gray-800">Nº: <span className="text-red-600">{formatInvoiceNumber(invoice.invoiceNumber)}</span></p>
                                     <p className="text-[11px] text-gray-600"><strong>Código:</strong> {invoice.controlNumber}</p>
@@ -203,7 +203,7 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
 
                         <div className="mb-4">
                             <table className="w-full text-[10px]">
-                                <thead className="bg-green-500 text-white font-bold uppercase">
+                                <thead className="bg-blue-500 text-white font-bold uppercase">
                                     <tr>
                                         <th className="px-2 py-1.5 text-left w-1/3">DESCRIPCIÓN</th>
                                         <th className="px-2 py-1.5 text-center w-16">CANTIDAD</th>
@@ -265,7 +265,7 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
                                     <div className="flex justify-between text-gray-700"><span>IVA (16%):</span> <span>{formatCurrency(financials.iva)}</span></div>
                                     <div className="flex justify-between text-gray-700"><span>Aporte Ipostel:</span> <span>{formatCurrency(financials.ipostel)}</span></div>
                                     {financials.igtf > 0 && <div className="flex justify-between text-gray-700"><span>IGTF (3%):</span> <span>{formatCurrency(financials.igtf)}</span></div>}
-                                    <div className="bg-green-600 text-white p-2 rounded mt-2 flex justify-between items-center">
+                                    <div className="bg-blue-600 text-white p-2 rounded mt-2 flex justify-between items-center">
                                         <span className="font-bold uppercase">TOTAL A PAGAR:</span>
                                         <span className="text-lg font-black">{formatCurrency(financials.total)}</span>
                                     </div>

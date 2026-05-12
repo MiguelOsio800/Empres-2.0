@@ -22,7 +22,9 @@ interface SettingsViewProps {
 const CompanyInfoSettings: React.FC<{ info: CompanyInfo; onSave: (info: CompanyInfo) => void }> = ({ info, onSave }) => {
     const [formData, setFormData] = useState(info);
     
-    React.useEffect(() => setFormData(info), [info]);
+    React.useEffect(() => {
+        if (info) setFormData(info);
+    }, [info]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,9 +32,11 @@ const CompanyInfoSettings: React.FC<{ info: CompanyInfo; onSave: (info: CompanyI
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData);
+        onSave({ ...info, ...formData });
         alert('Información de la empresa guardada.');
     };
+
+    if (!formData) return <div>Cargando...</div>;
 
     return (
         <Card>

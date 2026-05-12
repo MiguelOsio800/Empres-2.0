@@ -175,8 +175,17 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     };
 
     const handleCompanyInfoSave = async (info: CompanyInfo) => {
-        const saved = await apiFetch<CompanyInfo>('/company-info', { method: 'PUT', body: JSON.stringify(info) });
-        setCompanyInfo(saved);
+        const saved = await apiFetch<any>('/company-info', { method: 'PUT', body: JSON.stringify(info) });
+        
+        // Merge the previous info, the data we sent (info), and any full response objects (if valid).
+        setCompanyInfo(prev => {
+            const updated = { ...prev, ...info };
+            if (saved && typeof saved === 'object' && saved.id) {
+                 return { ...updated, ...saved };
+            }
+            return updated;
+        });
+
         if (currentUser) {
             logAction(currentUser, 'UPDATE', 'Actualización de información de la empresa');
         }
