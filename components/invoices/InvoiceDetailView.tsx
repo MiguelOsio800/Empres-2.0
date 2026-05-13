@@ -242,7 +242,7 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({
                             <div className="w-1/2 text-[10px] text-justify leading-relaxed text-black border border-gray-200 rounded-lg p-3">
                                 <h2 className="text-sm font-bold uppercase underline mb-2 text-center">Condiciones generales</h2>
                                 <div className="space-y-1">
-                                    <p><strong>*Primero:</strong> La cooperativa indemnizará solo (3) veces el valor del flete en caso de extravío o siniestro si no tiene valor asegurado.</p>
+                                    <p><strong>*Primero:</strong> La empresa indemnizará solo (3) veces el valor del flete en caso de extravío o siniestro si no tiene valor asegurado.</p>
                                     <p><strong>*Segundo:</strong> Mercancía frágil o de fácil descomposición deteriorada por mal embalaje corre por cuenta del cliente.</p>
                                     <p><strong>*Tercero:</strong> En caso de siniestro no imputable, se indemnizará según valor declarado menos el deducible de la póliza.</p>
                                     <p><strong>*Cuarto:</strong> No habrá indemnización si la mercancía es confiscada por autoridades; el cliente pagará el flete.</p>
